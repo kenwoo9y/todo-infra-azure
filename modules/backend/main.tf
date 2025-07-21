@@ -23,7 +23,7 @@ resource "azurerm_subnet" "container_apps" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = var.container_apps_subnet_address_prefixes
-  
+
   delegation {
     name = "delegation"
     service_delegation {
@@ -35,11 +35,11 @@ resource "azurerm_subnet" "container_apps" {
 
 # Container Apps Environment
 resource "azurerm_container_app_environment" "main" {
-  name                       = "${var.project_name}-env"
-  resource_group_name        = var.resource_group_name
-  location                   = var.location
-  infrastructure_subnet_id   = azurerm_subnet.container_apps.id
-  tags                       = var.tags
+  name                     = "${var.project_name}-env"
+  resource_group_name      = var.resource_group_name
+  location                 = var.location
+  infrastructure_subnet_id = azurerm_subnet.container_apps.id
+  tags                     = var.tags
 }
 
 # Container App
@@ -55,7 +55,7 @@ resource "azurerm_container_app" "backend" {
       image  = "${azurerm_container_registry.acr.login_server}/${var.container_app_image_name}:${var.container_app_image_tag}"
       cpu    = var.container_app_cpu
       memory = var.container_app_memory
-      
+
       dynamic "env" {
         for_each = var.container_app_environment_variables
         content {
@@ -75,6 +75,6 @@ resource "azurerm_container_app" "backend" {
       latest_revision = true
     }
   }
-  
+
   tags = var.tags
 } 

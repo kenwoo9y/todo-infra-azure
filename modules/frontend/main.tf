@@ -6,7 +6,7 @@ resource "azurerm_storage_account" "frontend" {
   account_tier             = var.storage_account_tier
   account_replication_type = var.storage_account_replication_type
   account_kind             = "StorageV2"
-  
+
   tags = var.tags
 }
 
@@ -25,8 +25,8 @@ resource "azurerm_frontdoor" "main" {
   routing_rule {
     name               = "frontend-rule"
     accepted_protocols = var.front_door_accepted_protocols
-    patterns_to_match   = var.front_door_frontend_patterns
-    frontend_endpoints  = ["${var.project_name}-frontend"]
+    patterns_to_match  = var.front_door_frontend_patterns
+    frontend_endpoints = ["${var.project_name}-frontend"]
     forwarding_configuration {
       forwarding_protocol = var.front_door_forwarding_protocol
       backend_pool_name   = "frontend-pool"
@@ -36,8 +36,8 @@ resource "azurerm_frontdoor" "main" {
   routing_rule {
     name               = "backend-rule"
     accepted_protocols = var.front_door_accepted_protocols
-    patterns_to_match   = var.front_door_backend_patterns
-    frontend_endpoints  = ["${var.project_name}-frontend"]
+    patterns_to_match  = var.front_door_backend_patterns
+    frontend_endpoints = ["${var.project_name}-frontend"]
     forwarding_configuration {
       forwarding_protocol = var.front_door_forwarding_protocol
       backend_pool_name   = "backend-pool"
@@ -79,11 +79,11 @@ resource "azurerm_frontdoor" "main" {
   }
 
   frontend_endpoint {
-    name                              = "${var.project_name}-frontend"
-    host_name                         = "${var.project_name}-frontdoor.azurefd.net"
-    session_affinity_enabled          = var.front_door_session_affinity_enabled
-    session_affinity_ttl_seconds      = var.front_door_session_affinity_ttl_seconds
+    name                         = "${var.project_name}-frontend"
+    host_name                    = "${var.project_name}-frontdoor.azurefd.net"
+    session_affinity_enabled     = var.front_door_session_affinity_enabled
+    session_affinity_ttl_seconds = var.front_door_session_affinity_ttl_seconds
   }
-  
+
   tags = var.tags
 } 

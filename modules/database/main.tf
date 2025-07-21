@@ -19,7 +19,7 @@ resource "azurerm_mysql_server" "main" {
   public_network_access_enabled     = var.mysql_public_network_access_enabled
   ssl_enforcement_enabled           = var.mysql_ssl_enforcement_enabled
   ssl_minimal_tls_version_enforced  = var.mysql_ssl_minimal_tls_version_enforced
-  
+
   tags = var.tags
 }
 
@@ -44,6 +44,6 @@ resource "azurerm_postgresql_server" "main" {
   public_network_access_enabled     = var.postgresql_public_network_access_enabled
   ssl_enforcement_enabled           = var.postgresql_ssl_enforcement_enabled
   ssl_minimal_tls_version_enforced  = var.postgresql_ssl_minimal_tls_version_enforced
-  
+
   tags = var.tags
 } 

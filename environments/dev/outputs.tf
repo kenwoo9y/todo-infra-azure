@@ -30,22 +30,24 @@ output "front_door_url" {
 
 output "mysql_server_fqdn" {
   description = "MySQLサーバーのFQDN"
-  value       = var.database_type == "mysql" ? module.database.mysql_server_fqdn : null
+  value       = module.database.mysql_server_fqdn
 }
 
 output "postgresql_server_fqdn" {
   description = "PostgreSQLサーバーのFQDN"
-  value       = var.database_type == "postgresql" ? module.database.postgresql_server_fqdn : null
+  value       = module.database.postgresql_server_fqdn
 }
 
 output "database_connection_info" {
   description = "データベース接続情報"
   value = {
-    type     = var.database_type
-    host     = module.database.database_host
-    port     = module.database.database_port
-    database = var.database_name
-    username = var.database_type == "mysql" ? var.mysql_admin_username : var.postgresql_admin_username
+    mysql_host      = module.database.mysql_server_fqdn
+    postgresql_host = module.database.postgresql_server_fqdn
+    mysql_port      = "3306"
+    postgresql_port = "5432"
+    database        = var.database_name
+    mysql_user      = var.mysql_user
+    postgresql_user = var.postgresql_user
   }
   sensitive = true
 } 

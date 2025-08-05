@@ -1,12 +1,11 @@
 # MySQL Database
 resource "azurerm_mysql_server" "main" {
-  count               = var.database_type == "mysql" ? 1 : 0
   name                = "${var.project_name}-mysql"
   location            = var.location
   resource_group_name = var.resource_group_name
 
-  administrator_login          = var.mysql_admin_username
-  administrator_login_password = var.mysql_admin_password
+  administrator_login          = var.mysql_user
+  administrator_login_password = var.mysql_password
 
   sku_name   = var.mysql_sku_name
   storage_mb = var.mysql_storage_mb
@@ -25,13 +24,12 @@ resource "azurerm_mysql_server" "main" {
 
 # PostgreSQL Database
 resource "azurerm_postgresql_server" "main" {
-  count               = var.database_type == "postgresql" ? 1 : 0
   name                = "${var.project_name}-postgresql"
   location            = var.location
   resource_group_name = var.resource_group_name
 
-  administrator_login          = var.postgresql_admin_username
-  administrator_login_password = var.postgresql_admin_password
+  administrator_login          = var.postgresql_user
+  administrator_login_password = var.postgresql_password
 
   sku_name   = var.postgresql_sku_name
   storage_mb = var.postgresql_storage_mb

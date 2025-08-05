@@ -1,12 +1,3 @@
-variable "database_type" {
-  description = "使用するデータベースの種類（mysql または postgresql）"
-  type        = string
-  validation {
-    condition     = contains(["mysql", "postgresql"], var.database_type)
-    error_message = "database_typeは 'mysql' または 'postgresql' である必要があります。"
-  }
-}
-
 variable "project_name" {
   description = "プロジェクト名"
   type        = string
@@ -28,14 +19,14 @@ variable "tags" {
 }
 
 # MySQL設定
-variable "mysql_admin_username" {
-  description = "MySQL管理者ユーザー名"
+variable "mysql_user" {
+  description = "MySQLユーザー名"
   type        = string
   sensitive   = true
 }
 
-variable "mysql_admin_password" {
-  description = "MySQL管理者パスワード"
+variable "mysql_password" {
+  description = "MySQLパスワード"
   type        = string
   sensitive   = true
 }
@@ -101,14 +92,14 @@ variable "mysql_ssl_minimal_tls_version_enforced" {
 }
 
 # PostgreSQL設定
-variable "postgresql_admin_username" {
-  description = "PostgreSQL管理者ユーザー名"
+variable "postgresql_user" {
+  description = "PostgreSQLユーザー名"
   type        = string
   sensitive   = true
 }
 
-variable "postgresql_admin_password" {
-  description = "PostgreSQL管理者パスワード"
+variable "postgresql_password" {
+  description = "PostgreSQLパスワード"
   type        = string
   sensitive   = true
 }

@@ -11,19 +11,19 @@ storage_account_name = "todoappdevstorage"
 # Azure Container Registry
 acr_name = "todoappdevacr"
 
-# データベース設定
-database_type = "mysql"  # "mysql" または "postgresql"
+# バックエンドデータベース設定
+default_database_type = "mysql"  # "mysql" または "postgresql"
 database_name = "todoapp_dev"
 
-# MySQL設定（database_type = "mysql" の場合）
-# パスワードは環境変数 MYSQL_ADMIN_PASSWORD で設定
-mysql_admin_username = "admin"
-# mysql_admin_password = "環境変数 MYSQL_ADMIN_PASSWORD から設定"
+# MySQL設定（両方のデータベースがデプロイされます）
+# パスワードは環境変数 MYSQL_PASSWORD で設定
+mysql_user = "todoapp_user"
+# mysql_password = "環境変数 MYSQL_PASSWORD から設定"
 
-# PostgreSQL設定（database_type = "postgresql" の場合）
-# パスワードは環境変数 POSTGRESQL_ADMIN_PASSWORD で設定
-postgresql_admin_username = "admin"
-# postgresql_admin_password = "環境変数 POSTGRESQL_ADMIN_PASSWORD から設定"
+# PostgreSQL設定（両方のデータベースがデプロイされます）
+# パスワードは環境変数 POSTGRESQL_PASSWORD で設定
+postgresql_user = "todoapp_user"
+# postgresql_password = "環境変数 POSTGRESQL_PASSWORD から設定"
 
 # タグ
 tags = {

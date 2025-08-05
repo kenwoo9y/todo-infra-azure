@@ -28,13 +28,13 @@ variable "acr_name" {
   default     = "todoappdevacr"
 }
 
-variable "database_type" {
-  description = "使用するデータベースの種類（mysql または postgresql）"
+variable "default_database_type" {
+  description = "バックエンドが接続するデータベースの種類（mysql または postgresql）"
   type        = string
   default     = "mysql"
   validation {
-    condition     = contains(["mysql", "postgresql"], var.database_type)
-    error_message = "database_typeは 'mysql' または 'postgresql' である必要があります。"
+    condition     = contains(["mysql", "postgresql"], var.default_database_type)
+    error_message = "default_database_typeは 'mysql' または 'postgresql' である必要があります。"
   }
 }
 
@@ -44,28 +44,28 @@ variable "database_name" {
   default     = "todoapp_dev"
 }
 
-variable "mysql_admin_username" {
-  description = "MySQL管理者ユーザー名"
+variable "mysql_user" {
+  description = "MySQLユーザー名"
   type        = string
-  default     = "admin"
+  default     = "todoapp_user"
   sensitive   = true
 }
 
-variable "mysql_admin_password" {
-  description = "MySQL管理者パスワード（環境変数 MYSQL_ADMIN_PASSWORD から渡してください）"
+variable "mysql_password" {
+  description = "MySQLパスワード（環境変数 MYSQL_PASSWORD から渡してください）"
   type        = string
   sensitive   = true
 }
 
-variable "postgresql_admin_username" {
-  description = "PostgreSQL管理者ユーザー名"
+variable "postgresql_user" {
+  description = "PostgreSQLユーザー名"
   type        = string
-  default     = "admin"
+  default     = "todoapp_user"
   sensitive   = true
 }
 
-variable "postgresql_admin_password" {
-  description = "PostgreSQL管理者パスワード（環境変数 POSTGRESQL_ADMIN_PASSWORD から渡してください）"
+variable "postgresql_password" {
+  description = "PostgreSQLパスワード（環境変数 POSTGRESQL_PASSWORD から渡してください）"
   type        = string
   sensitive   = true
 }

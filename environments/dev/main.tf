@@ -30,19 +30,18 @@ resource "azurerm_resource_group" "main" {
 module "database" {
   source = "../../modules/database"
 
-  database_type       = var.database_type
   project_name        = var.project_name
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
   # MySQL設定
-  mysql_admin_username = var.mysql_admin_username
-  mysql_admin_password = var.mysql_admin_password
+  mysql_user     = var.mysql_user
+  mysql_password = var.mysql_password
 
   # PostgreSQL設定
-  postgresql_admin_username = var.postgresql_admin_username
-  postgresql_admin_password = var.postgresql_admin_password
+  postgresql_user     = var.postgresql_user
+  postgresql_password = var.postgresql_password
 }
 
 # バックエンドモジュール
@@ -59,12 +58,16 @@ module "backend" {
 
   # Container App設定
   container_app_environment_variables = {
-    DATABASE_TYPE     = var.database_type
-    DATABASE_HOST     = module.database.database_host
-    DATABASE_NAME     = var.database_name
-    DATABASE_USER     = var.database_type == "mysql" ? var.mysql_admin_username : var.postgresql_admin_username
-    DATABASE_PASSWORD = var.database_type == "mysql" ? var.mysql_admin_password : var.postgresql_admin_password
-    DATABASE_PORT     = module.database.database_port
+    DATABASE_TYPE       = var.default_database_type
+    MYSQL_HOST          = module.database.mysql_server_fqdn
+    POSTGRESQL_HOST     = module.database.postgresql_server_fqdn
+    DATABASE_NAME       = var.database_name
+    MYSQL_USER          = var.mysql_user
+    MYSQL_PASSWORD      = var.mysql_password
+    POSTGRESQL_USER     = var.postgresql_user
+    POSTGRESQL_PASSWORD = var.postgresql_password
+    MYSQL_PORT          = "3306"
+    POSTGRESQL_PORT     = "5432"
   }
 }
 

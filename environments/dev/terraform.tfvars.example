@@ -1,31 +1,31 @@
-# プロジェクト設定
+# Project Configuration
 project_name = "todoapp-dev"
 location     = "japaneast"
 
-# リソースグループ
+# Resource Group
 resource_group_name = "todo-app-dev-rg"
 
-# ストレージアカウント
+# Storage Account
 storage_account_name = "todoappdevstorage"
 
 # Azure Container Registry
 acr_name = "todoappdevacr"
 
-# バックエンドデータベース設定
-default_database_type = "mysql"  # "mysql" または "postgresql"
+# Backend Database Configuration
+default_database_type = "mysql"  # "mysql" or "postgresql"
 database_name = "todoapp_dev"
 
-# MySQL設定（両方のデータベースがデプロイされます）
-# パスワードは環境変数 MYSQL_PASSWORD で設定
+# MySQL Configuration (both databases will be deployed)
+# Password is set via environment variable MYSQL_PASSWORD
 mysql_user = "todoapp_user"
-# mysql_password = "環境変数 MYSQL_PASSWORD から設定"
+# mysql_password = "Set from environment variable MYSQL_PASSWORD"
 
-# PostgreSQL設定（両方のデータベースがデプロイされます）
-# パスワードは環境変数 POSTGRESQL_PASSWORD で設定
+# PostgreSQL Configuration (both databases will be deployed)
+# Password is set via environment variable POSTGRESQL_PASSWORD
 postgresql_user = "todoapp_user"
-# postgresql_password = "環境変数 POSTGRESQL_PASSWORD から設定"
+# postgresql_password = "Set from environment variable POSTGRESQL_PASSWORD"
 
-# タグ
+# Tags
 tags = {
   Environment = "dev"
   Project     = "todo-app"

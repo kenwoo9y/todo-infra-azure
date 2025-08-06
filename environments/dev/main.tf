@@ -11,14 +11,14 @@ provider "azurerm" {
   features {}
 }
 
-# リソースグループ
+# Resource Group
 resource "azurerm_resource_group" "main" {
   name     = var.resource_group_name
   location = var.location
   tags     = var.tags
 }
 
-# データベースモジュール
+# Database Module
 module "database" {
   source = "../../modules/database"
 
@@ -27,16 +27,16 @@ module "database" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
-  # MySQL設定
+  # MySQL Configuration
   mysql_user     = var.mysql_user
   mysql_password = var.mysql_password
 
-  # PostgreSQL設定
+  # PostgreSQL Configuration
   postgresql_user     = var.postgresql_user
   postgresql_password = var.postgresql_password
 }
 
-# バックエンドモジュール
+# Backend Module
 module "backend" {
   source = "../../modules/backend"
 
@@ -45,10 +45,10 @@ module "backend" {
   location            = var.location
   tags                = var.tags
 
-  # Container Registry設定
+  # Container Registry Configuration
   acr_name = var.acr_name
 
-  # Container App設定
+  # Container App Configuration
   container_app_environment_variables = {
     DATABASE_TYPE       = var.default_database_type
     MYSQL_HOST          = module.database.mysql_server_fqdn
@@ -63,7 +63,7 @@ module "backend" {
   }
 }
 
-# フロントエンドモジュール
+# Frontend Module
 module "frontend" {
   source = "../../modules/frontend"
 
@@ -72,10 +72,10 @@ module "frontend" {
   location            = var.location
   tags                = var.tags
 
-  # ストレージアカウント設定
+  # Storage Account Configuration
   storage_account_name = var.storage_account_name
 
-  # バックエンド設定
+  # Backend Configuration
   backend_host_header = module.backend.container_app_url
   backend_address     = module.backend.container_app_url
 } 

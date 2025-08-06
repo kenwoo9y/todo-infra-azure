@@ -1,45 +1,45 @@
 output "resource_group_name" {
-  description = "作成されたリソースグループの名前"
+  description = "Name of the created resource group"
   value       = azurerm_resource_group.main.name
 }
 
 output "storage_account_name" {
-  description = "ストレージアカウントの名前"
+  description = "Storage account name"
   value       = module.frontend.storage_account_name
 }
 
 output "storage_account_primary_web_endpoint" {
-  description = "ストレージアカウントのプライマリWebエンドポイント"
+  description = "Primary web endpoint of the storage account"
   value       = module.frontend.storage_account_primary_web_endpoint
 }
 
 output "container_registry_login_server" {
-  description = "Azure Container Registryのログインサーバー"
+  description = "Azure Container Registry login server"
   value       = module.backend.container_registry_login_server
 }
 
 output "container_app_url" {
-  description = "Container AppのURL"
+  description = "Container App URL"
   value       = module.backend.container_app_url
 }
 
 output "front_door_url" {
-  description = "Azure Front DoorのURL"
+  description = "Azure Front Door URL"
   value       = module.frontend.front_door_url
 }
 
 output "mysql_server_fqdn" {
-  description = "MySQLサーバーのFQDN"
+  description = "MySQL server FQDN"
   value       = module.database.mysql_server_fqdn
 }
 
 output "postgresql_server_fqdn" {
-  description = "PostgreSQLサーバーのFQDN"
+  description = "PostgreSQL server FQDN"
   value       = module.database.postgresql_server_fqdn
 }
 
 output "database_connection_info" {
-  description = "データベース接続情報"
+  description = "Database connection information"
   value = {
     mysql_host      = module.database.mysql_server_fqdn
     postgresql_host = module.database.postgresql_server_fqdn

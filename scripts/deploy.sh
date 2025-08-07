@@ -32,6 +32,61 @@ if [[ ! "$ENVIRONMENT" =~ ^(dev|staging|production)$ ]]; then
     exit 1
 fi
 
+# Setup Terraform backend if not exists
+setup_backend() {
+    echo "🔧 Checking Terraform backend setup..."
+    
+    RESOURCE_GROUP_NAME="terraform-state-rg"
+    STORAGE_ACCOUNT_NAME="tfstatetodoapp"
+    CONTAINER_NAME="tfstate"
+    LOCATION="japaneast"
+    
+    # Check if resource group exists
+    if ! az group show --name $RESOURCE_GROUP_NAME >/dev/null 2>&1; then
+        echo "📦 Creating resource group..."
+        az group create \
+          --name $RESOURCE_GROUP_NAME \
+          --location $LOCATION \
+          --tags Environment=infrastructure Project=todo-app ManagedBy=terraform
+    fi
+    
+    # Check if storage account exists
+    if ! az storage account show --name $STORAGE_ACCOUNT_NAME --resource-group $RESOURCE_GROUP_NAME >/dev/null 2>&1; then
+        echo "💾 Creating storage account..."
+        az storage account create \
+          --resource-group $RESOURCE_GROUP_NAME \
+          --name $STORAGE_ACCOUNT_NAME \
+          --sku Standard_LRS \
+          --encryption-services blob \
+          --location $LOCATION \
+          --tags Environment=infrastructure Project=todo-app ManagedBy=terraform
+    fi
+    
+    # Check if container exists
+    if ! az storage container show --name $CONTAINER_NAME --account-name $STORAGE_ACCOUNT_NAME >/dev/null 2>&1; then
+        echo "📁 Creating blob container..."
+        az storage container create \
+          --name $CONTAINER_NAME \
+          --account-name $STORAGE_ACCOUNT_NAME
+    fi
+    
+    # Get access key
+    ACCOUNT_KEY=$(az storage account keys list \
+      --resource-group $RESOURCE_GROUP_NAME \
+      --account-name $STORAGE_ACCOUNT_NAME \
+      --query '[0].value' \
+      --output tsv)
+    
+    # Set environment variable
+    export ARM_ACCESS_KEY=$ACCOUNT_KEY
+    
+    echo "✅ Terraform backend setup completed!"
+    echo "🔑 Access key has been set as ARM_ACCESS_KEY environment variable"
+}
+
+# Check and setup backend
+setup_backend
+
 echo "🚀 Deploying infrastructure for $ENVIRONMENT environment..."
 
 # Environment directory path

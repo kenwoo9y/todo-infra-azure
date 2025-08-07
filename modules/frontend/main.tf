@@ -1,4 +1,4 @@
-# ストレージアカウント（フロントエンド用）
+# Storage Account (for frontend)
 resource "azurerm_storage_account" "frontend" {
   name                     = var.storage_account_name
   resource_group_name      = var.resource_group_name
@@ -10,7 +10,7 @@ resource "azurerm_storage_account" "frontend" {
   tags = var.tags
 }
 
-# 静的Webサイト設定
+# Static Website Configuration
 resource "azurerm_storage_account_static_website" "frontend" {
   storage_account_id = azurerm_storage_account.frontend.id
   index_document     = var.static_website_index_document

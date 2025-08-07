@@ -1,87 +1,87 @@
 #!/bin/bash
 
-# エラー時にスクリプトを停止
+# Stop script on error
 set -e
 
-# 使用方法の表示
+# Show usage
 show_usage() {
-    echo "使用方法: $0 <environment>"
+    echo "Usage: $0 <environment>"
     echo ""
-    echo "引数:"
-    echo "  environment    破棄する環境名 (例: dev, staging, production)"
+    echo "Arguments:"
+    echo "  environment    Environment name to destroy (e.g., dev, staging, production)"
     echo ""
-    echo "例:"
+    echo "Examples:"
     echo "  $0 dev"
     echo "  $0 staging"
     echo "  $0 production"
     exit 1
 }
 
-# 引数のチェック
+# Check arguments
 if [ $# -eq 0 ]; then
-    echo "❌ エラー: 環境名が指定されていません。"
+    echo "❌ Error: Environment name not specified."
     show_usage
 fi
 
 ENVIRONMENT=$1
 
-# 環境名の検証
+# Validate environment name
 if [[ ! "$ENVIRONMENT" =~ ^(dev|staging|production)$ ]]; then
-    echo "❌ エラー: 無効な環境名です。"
-    echo "   有効な環境名: dev, staging, production"
+    echo "❌ Error: Invalid environment name."
+    echo "   Valid environment names: dev, staging, production"
     exit 1
 fi
 
-echo "🗑️ $ENVIRONMENT環境のインフラを破棄しています..."
+echo "🗑️ Destroying infrastructure for $ENVIRONMENT environment..."
 
-# 環境ディレクトリのパス
+# Environment directory path
 ENV_DIR="environments/$ENVIRONMENT"
 
-# 環境ディレクトリが存在するかチェック
+# Check if environment directory exists
 if [[ ! -d "$ENV_DIR" ]] || [[ ! -f "$ENV_DIR/main.tf" ]] || [[ ! -f "$ENV_DIR/variables.tf" ]]; then
-    echo "❌ エラー: $ENVIRONMENT環境ディレクトリまたは必要なファイルが見つかりません。"
-    echo "   $ENV_DIR ディレクトリを確認してください。"
+    echo "❌ Error: $ENVIRONMENT environment directory or required files not found."
+    echo "   Please check the $ENV_DIR directory."
     exit 1
 fi
 
-# 環境ディレクトリに移動
+# Change to environment directory
 cd "$ENV_DIR"
 
-# 破棄プランの確認
-echo "📋 破棄プランを確認しています..."
+# Plan destruction
+echo "📋 Checking destruction plan..."
 terraform plan -destroy
 
-# ユーザーに確認
+# Confirm with user
 echo ""
-echo "⚠️  警告: この操作により、$ENVIRONMENT環境のすべてのリソースが削除されます。"
-echo "   削除されるリソース:"
-echo "   - リソースグループ"
-echo "   - ストレージアカウント"
+echo "⚠️  Warning: This operation will delete all resources in the $ENVIRONMENT environment."
+echo "   Resources to be deleted:"
+echo "   - Resource Group"
+echo "   - Storage Account"
 echo "   - Container Registry"
 echo "   - Container Apps"
-echo "   - データベース"
+echo "   - Database"
 echo "   - Front Door"
-echo "   - 仮想ネットワーク"
+echo "   - Virtual Network"
 echo ""
 
-# production環境の場合は特別な確認
+# Special confirmation for production environment
 if [[ "$ENVIRONMENT" == "production" ]]; then
-    echo "🚨 本番環境の破棄です。特に注意してください！"
-    read -p "本当に本番環境を破棄しますか？ (yes/no): " -r
+    echo "🚨 Production environment destruction. Please be extra careful!"
+    read -p "Are you sure you want to destroy the production environment? (yes/no): " -r
     if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
-        echo "❌ 破棄がキャンセルされました。"
+        echo "❌ Destruction cancelled."
         exit 1
     fi
 else
-    read -p "本当に$ENVIRONMENT環境を破棄しますか？ (yes/no): " -r
+    read -p "Are you sure you want to destroy the $ENVIRONMENT environment? (yes/no): " -r
     if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
-        echo "❌ 破棄がキャンセルされました。"
+        echo "❌ Destruction cancelled."
         exit 1
     fi
 fi
 
-# 破棄の実行
-echo "🗑️ インフラを破棄しています..."
+# Execute destruction
+echo "🗑️ Destroying infrastructure..."
 terraform destroy -auto-approve
 
-echo "✅ $ENVIRONMENT環境の破棄が完了しました！" 
+echo "✅ Destruction of $ENVIRONMENT environment completed!" 

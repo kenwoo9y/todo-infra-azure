@@ -1,86 +1,86 @@
 #!/bin/bash
 
-# エラー時にスクリプトを停止
+# Stop script on error
 set -e
 
-# 使用方法の表示
+# Show usage
 show_usage() {
-    echo "使用方法: $0 <environment>"
+    echo "Usage: $0 <environment>"
     echo ""
-    echo "引数:"
-    echo "  environment    デプロイする環境名 (例: dev, staging, production)"
+    echo "Arguments:"
+    echo "  environment    Environment name to deploy (e.g., dev, staging, production)"
     echo ""
-    echo "例:"
+    echo "Examples:"
     echo "  $0 dev"
     echo "  $0 staging"
     echo "  $0 production"
     exit 1
 }
 
-# 引数のチェック
+# Check arguments
 if [ $# -eq 0 ]; then
-    echo "❌ エラー: 環境名が指定されていません。"
+    echo "❌ Error: Environment name not specified."
     show_usage
 fi
 
 ENVIRONMENT=$1
 
-# 環境名の検証
+# Validate environment name
 if [[ ! "$ENVIRONMENT" =~ ^(dev|staging|production)$ ]]; then
-    echo "❌ エラー: 無効な環境名です。"
-    echo "   有効な環境名: dev, staging, production"
+    echo "❌ Error: Invalid environment name."
+    echo "   Valid environment names: dev, staging, production"
     exit 1
 fi
 
-echo "🚀 $ENVIRONMENT環境のインフラをデプロイしています..."
+echo "🚀 Deploying infrastructure for $ENVIRONMENT environment..."
 
-# 環境ディレクトリのパス
+# Environment directory path
 ENV_DIR="environments/$ENVIRONMENT"
 
-# 環境ディレクトリが存在するかチェック
+# Check if environment directory exists
 if [[ ! -d "$ENV_DIR" ]] || [[ ! -f "$ENV_DIR/main.tf" ]] || [[ ! -f "$ENV_DIR/variables.tf" ]]; then
-    echo "❌ エラー: $ENVIRONMENT環境ディレクトリまたは必要なファイルが見つかりません。"
-    echo "   $ENV_DIR ディレクトリを確認してください。"
+    echo "❌ Error: $ENVIRONMENT environment directory or required files not found."
+    echo "   Please check the $ENV_DIR directory."
     exit 1
 fi
 
-# 環境ディレクトリに移動
+# Change to environment directory
 cd "$ENV_DIR"
 
-# Terraformの初期化
-echo "📦 Terraformを初期化しています..."
+# Initialize Terraform
+echo "📦 Initializing Terraform..."
 terraform init
 
-# プランの確認
-echo "📋 デプロイプランを確認しています..."
+# Plan deployment
+echo "📋 Checking deployment plan..."
 terraform plan
 
-# ユーザーに確認
-read -p "$ENVIRONMENT環境にデプロイを続行しますか？ (y/N): " -n 1 -r
+# Confirm with user
+read -p "Continue deployment to $ENVIRONMENT environment? (y/N): " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "❌ デプロイがキャンセルされました。"
+    echo "❌ Deployment cancelled."
     exit 1
 fi
 
-# デプロイの実行
-echo "🏗️ インフラをデプロイしています..."
+# Execute deployment
+echo "🏗️ Deploying infrastructure..."
 terraform apply -auto-approve
 
-# デプロイ完了
-echo "✅ $ENVIRONMENT環境のデプロイが完了しました！"
+# Deployment completed
+echo "✅ Deployment to $ENVIRONMENT environment completed!"
 echo ""
-echo "📊 デプロイ結果:"
+echo "📊 Deployment results:"
 terraform output
 
 echo ""
-echo "🔗 アクセスURL:"
+echo "🔗 Access URLs:"
 echo "Front Door URL: https://$(terraform output -raw front_door_url)"
 echo "Container App URL: https://$(terraform output -raw container_app_url)"
 echo "Storage Account Web Endpoint: $(terraform output -raw storage_account_primary_web_endpoint)"
 
 echo ""
-echo "📝 次のステップ:"
-echo "1. アプリケーションのDockerイメージをContainer Registryにプッシュ"
-echo "2. フロントエンドアプリケーションをBlob Storageにアップロード"
-echo "3. Container Appを更新して新しいイメージをデプロイ" 
+echo "📝 Next steps:"
+echo "1. Push application Docker image to Container Registry"
+echo "2. Upload frontend application to Blob Storage"
+echo "3. Update Container App to deploy new image" 

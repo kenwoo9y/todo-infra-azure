@@ -1,4 +1,4 @@
-# コンテナレジストリ
+# Container Registry
 resource "azurerm_container_registry" "acr" {
   name                = var.acr_name
   resource_group_name = var.resource_group_name
@@ -8,7 +8,7 @@ resource "azurerm_container_registry" "acr" {
   tags                = var.tags
 }
 
-# 仮想ネットワーク
+# Virtual Network
 resource "azurerm_virtual_network" "main" {
   name                = "${var.project_name}-vnet"
   resource_group_name = var.resource_group_name
@@ -17,7 +17,7 @@ resource "azurerm_virtual_network" "main" {
   tags                = var.tags
 }
 
-# サブネット
+# Subnet
 resource "azurerm_subnet" "container_apps" {
   name                 = "container-apps-subnet"
   resource_group_name  = var.resource_group_name

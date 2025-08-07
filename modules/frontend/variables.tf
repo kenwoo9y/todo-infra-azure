@@ -1,97 +1,97 @@
 variable "project_name" {
-  description = "プロジェクト名"
+  description = "Project name"
   type        = string
 }
 
 variable "resource_group_name" {
-  description = "リソースグループ名"
+  description = "Resource group name"
   type        = string
 }
 
 variable "location" {
-  description = "Azureリージョン"
+  description = "Azure region"
   type        = string
 }
 
 variable "tags" {
-  description = "リソースに付与するタグ"
+  description = "Tags to apply to resources"
   type        = map(string)
 }
 
-# ストレージアカウント設定
+# Storage Account Configuration
 variable "storage_account_name" {
-  description = "ストレージアカウントの名前"
+  description = "Storage account name"
   type        = string
 }
 
 variable "storage_account_tier" {
-  description = "ストレージアカウントのティア"
+  description = "Storage account tier"
   type        = string
   default     = "Standard"
 }
 
 variable "storage_account_replication_type" {
-  description = "ストレージアカウントのレプリケーションタイプ"
+  description = "Storage account replication type"
   type        = string
   default     = "LRS"
 }
 
 variable "static_website_index_document" {
-  description = "静的Webサイトのインデックスドキュメント"
+  description = "Static website index document"
   type        = string
   default     = "index.html"
 }
 
 variable "static_website_error_document" {
-  description = "静的Webサイトのエラードキュメント"
+  description = "Static website error document"
   type        = string
   default     = "index.html"
 }
 
-# Front Door設定
+# Front Door Configuration
 variable "front_door_accepted_protocols" {
-  description = "Front Doorで受け入れるプロトコル"
+  description = "Front Door accepted protocols"
   type        = list(string)
   default     = ["Http", "Https"]
 }
 
 variable "front_door_frontend_patterns" {
-  description = "フロントエンド用のパターンマッチ"
+  description = "Frontend pattern matching"
   type        = list(string)
   default     = ["/*"]
 }
 
 variable "front_door_backend_patterns" {
-  description = "バックエンド用のパターンマッチ"
+  description = "Backend pattern matching"
   type        = list(string)
   default     = ["/api/*"]
 }
 
 variable "front_door_forwarding_protocol" {
-  description = "Front Doorの転送プロトコル"
+  description = "Front Door forwarding protocol"
   type        = string
   default     = "MatchRequest"
 }
 
 variable "front_door_session_affinity_enabled" {
-  description = "Front Doorのセッションアフィニティの有効化"
+  description = "Enable Front Door session affinity"
   type        = bool
   default     = true
 }
 
 variable "front_door_session_affinity_ttl_seconds" {
-  description = "Front DoorのセッションアフィニティTTL（秒）"
+  description = "Front Door session affinity TTL (seconds)"
   type        = number
   default     = 300
 }
 
-# バックエンド設定
+# Backend Configuration
 variable "backend_host_header" {
-  description = "バックエンドのホストヘッダー"
+  description = "Backend host header"
   type        = string
 }
 
 variable "backend_address" {
-  description = "バックエンドのアドレス"
+  description = "Backend address"
   type        = string
 } 

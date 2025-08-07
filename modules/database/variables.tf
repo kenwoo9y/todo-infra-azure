@@ -1,165 +1,165 @@
 variable "project_name" {
-  description = "プロジェクト名"
+  description = "Project name"
   type        = string
 }
 
 variable "location" {
-  description = "Azureリージョン"
+  description = "Azure region"
   type        = string
 }
 
 variable "resource_group_name" {
-  description = "リソースグループ名"
+  description = "Resource group name"
   type        = string
 }
 
 variable "tags" {
-  description = "リソースに付与するタグ"
+  description = "Tags to apply to resources"
   type        = map(string)
 }
 
-# MySQL設定
+# MySQL Configuration
 variable "mysql_user" {
-  description = "MySQLユーザー名"
+  description = "MySQL username"
   type        = string
   sensitive   = true
 }
 
 variable "mysql_password" {
-  description = "MySQLパスワード"
+  description = "MySQL password"
   type        = string
   sensitive   = true
 }
 
 variable "mysql_sku_name" {
-  description = "MySQL SKU名"
+  description = "MySQL SKU name"
   type        = string
   default     = "B_Gen5_1"
 }
 
 variable "mysql_storage_mb" {
-  description = "MySQLストレージサイズ（MB）"
+  description = "MySQL storage size (MB)"
   type        = number
   default     = 5120
 }
 
 variable "mysql_version" {
-  description = "MySQLバージョン"
+  description = "MySQL version"
   type        = string
   default     = "5.7"
 }
 
 variable "mysql_auto_grow_enabled" {
-  description = "MySQL自動拡張の有効化"
+  description = "Enable MySQL auto grow"
   type        = bool
   default     = true
 }
 
 variable "mysql_backup_retention_days" {
-  description = "MySQLバックアップ保持日数"
+  description = "MySQL backup retention days"
   type        = number
   default     = 7
 }
 
 variable "mysql_geo_redundant_backup_enabled" {
-  description = "MySQL地理冗長バックアップの有効化"
+  description = "Enable MySQL geo-redundant backup"
   type        = bool
   default     = false
 }
 
 variable "mysql_infrastructure_encryption_enabled" {
-  description = "MySQLインフラ暗号化の有効化"
+  description = "Enable MySQL infrastructure encryption"
   type        = bool
   default     = false
 }
 
 variable "mysql_public_network_access_enabled" {
-  description = "MySQLパブリックネットワークアクセスの有効化"
+  description = "Enable MySQL public network access"
   type        = bool
   default     = true
 }
 
 variable "mysql_ssl_enforcement_enabled" {
-  description = "MySQL SSL強制の有効化"
+  description = "Enable MySQL SSL enforcement"
   type        = bool
   default     = true
 }
 
 variable "mysql_ssl_minimal_tls_version_enforced" {
-  description = "MySQL最小TLSバージョン"
+  description = "MySQL minimum TLS version"
   type        = string
   default     = "TLS1_2"
 }
 
-# PostgreSQL設定
+# PostgreSQL Configuration
 variable "postgresql_user" {
-  description = "PostgreSQLユーザー名"
+  description = "PostgreSQL username"
   type        = string
   sensitive   = true
 }
 
 variable "postgresql_password" {
-  description = "PostgreSQLパスワード"
+  description = "PostgreSQL password"
   type        = string
   sensitive   = true
 }
 
 variable "postgresql_sku_name" {
-  description = "PostgreSQL SKU名"
+  description = "PostgreSQL SKU name"
   type        = string
   default     = "B_Gen5_1"
 }
 
 variable "postgresql_storage_mb" {
-  description = "PostgreSQLストレージサイズ（MB）"
+  description = "PostgreSQL storage size (MB)"
   type        = number
   default     = 5120
 }
 
 variable "postgresql_version" {
-  description = "PostgreSQLバージョン"
+  description = "PostgreSQL version"
   type        = string
   default     = "11"
 }
 
 variable "postgresql_auto_grow_enabled" {
-  description = "PostgreSQL自動拡張の有効化"
+  description = "Enable PostgreSQL auto grow"
   type        = bool
   default     = true
 }
 
 variable "postgresql_backup_retention_days" {
-  description = "PostgreSQLバックアップ保持日数"
+  description = "PostgreSQL backup retention days"
   type        = number
   default     = 7
 }
 
 variable "postgresql_geo_redundant_backup_enabled" {
-  description = "PostgreSQL地理冗長バックアップの有効化"
+  description = "Enable PostgreSQL geo-redundant backup"
   type        = bool
   default     = false
 }
 
 variable "postgresql_infrastructure_encryption_enabled" {
-  description = "PostgreSQLインフラ暗号化の有効化"
+  description = "Enable PostgreSQL infrastructure encryption"
   type        = bool
   default     = false
 }
 
 variable "postgresql_public_network_access_enabled" {
-  description = "PostgreSQLパブリックネットワークアクセスの有効化"
+  description = "Enable PostgreSQL public network access"
   type        = bool
   default     = true
 }
 
 variable "postgresql_ssl_enforcement_enabled" {
-  description = "PostgreSQL SSL強制の有効化"
+  description = "Enable PostgreSQL SSL enforcement"
   type        = bool
   default     = true
 }
 
 variable "postgresql_ssl_minimal_tls_version_enforced" {
-  description = "PostgreSQL最小TLSバージョン"
+  description = "PostgreSQL minimum TLS version"
   type        = string
   default     = "TLS1_2"
 } 

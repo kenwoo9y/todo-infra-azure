@@ -13,6 +13,9 @@ format-check: ## Check the terraform code format
 format-fix: ## Format the terraform code
 	terraform fmt -recursive
 
+chmod-scripts: ## Make scripts executable
+	chmod +x scripts/*.sh
+
 help: ## Show options
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'

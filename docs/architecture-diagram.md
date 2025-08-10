@@ -1,4 +1,4 @@
-# ToDo Infrastructure on Azure - Architecture Diagram
+# ToDo Infrastructure on Microsoft Azure - Architecture Diagram
 
 ## System Architecture
 

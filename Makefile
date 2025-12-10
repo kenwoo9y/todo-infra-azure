@@ -1,4 +1,4 @@
-.PHONY: help lint-check lint-fix format-check format-fix
+.PHONY: help lint-check lint-fix format-check format-fix chmod-scripts
 .DEFAULT_GOAL := help
 
 lint-check: ## Check terraform code with tflint

@@ -35,3 +35,12 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# Environment variables file
+.env
+
+# Backend configuration files (generated dynamically)
+backend-config.tfbackend
+
+# Ignore VSCode files
+.vscode/

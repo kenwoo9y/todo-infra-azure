@@ -33,6 +33,7 @@ resource "azurerm_subnet" "container_apps" {
   }
 }
 
+
 # Container Apps Environment
 resource "azurerm_container_app_environment" "main" {
   name                     = "${var.project_name}-env"
@@ -49,6 +50,23 @@ resource "azurerm_container_app" "backend" {
   resource_group_name          = var.resource_group_name
   revision_mode                = var.container_app_revision_mode
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [var.container_app_managed_identity_id]
+  }
+
+  secret {
+    name                = "mysql-database-url"
+    identity            = var.container_app_managed_identity_id
+    key_vault_secret_id = var.mysql_database_url_secret_id
+  }
+
+  secret {
+    name                = "postgresql-database-url"
+    identity            = var.container_app_managed_identity_id
+    key_vault_secret_id = var.postgresql_database_url_secret_id
+  }
+
   template {
     container {
       name   = "backend"
@@ -56,12 +74,17 @@ resource "azurerm_container_app" "backend" {
       cpu    = var.container_app_cpu
       memory = var.container_app_memory
 
-      dynamic "env" {
-        for_each = var.container_app_environment_variables
-        content {
-          name  = env.key
-          value = env.value
-        }
+      env {
+        name  = "DB_TYPE"
+        value = var.default_database_type
+      }
+      env {
+        name        = "MYSQL_DATABASE_URL"
+        secret_name = "mysql-database-url"
+      }
+      env {
+        name        = "POSTGRESQL_DATABASE_URL"
+        secret_name = "postgresql-database-url"
       }
     }
   }

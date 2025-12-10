@@ -80,10 +80,10 @@ variable "container_app_memory" {
   default     = "0.5Gi"
 }
 
-variable "container_app_environment_variables" {
-  description = "Container App environment variables"
-  type        = map(string)
-  default     = {}
+# Database Configuration
+variable "default_database_type" {
+  description = "Type of database (mysql or postgresql)"
+  type        = string
 }
 
 variable "container_app_allow_insecure_connections" {
@@ -102,4 +102,20 @@ variable "container_app_target_port" {
   description = "Container App target port"
   type        = number
   default     = 8080
+}
+
+# Key Vault Configuration
+variable "container_app_managed_identity_id" {
+  description = "Managed Identity ID for Container App"
+  type        = string
+}
+
+variable "mysql_database_url_secret_id" {
+  description = "Key Vault secret ID for MySQL database URL"
+  type        = string
+}
+
+variable "postgresql_database_url_secret_id" {
+  description = "Key Vault secret ID for PostgreSQL database URL"
+  type        = string
 } 

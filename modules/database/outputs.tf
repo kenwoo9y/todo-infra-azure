@@ -16,4 +16,14 @@ output "mysql_port" {
 output "postgresql_port" {
   description = "PostgreSQL port"
   value       = "5432"
+}
+
+output "mysql_database_url_secret_id" {
+  description = "Key Vault secret ID for MySQL database URL"
+  value       = azurerm_key_vault_secret.mysql_database_url.id
+}
+
+output "postgresql_database_url_secret_id" {
+  description = "Key Vault secret ID for PostgreSQL database URL"
+  value       = azurerm_key_vault_secret.postgresql_database_url.id
 } 

@@ -162,4 +162,29 @@ variable "postgresql_ssl_minimal_tls_version_enforced" {
   description = "PostgreSQL minimum TLS version"
   type        = string
   default     = "TLS1_2"
+}
+
+# Database Name
+variable "database_name" {
+  description = "Database name used for both engines"
+  type        = string
+}
+
+# Key Vault Configuration
+variable "key_vault_sku_name" {
+  description = "Key Vault SKU name"
+  type        = string
+  default     = "standard"
+}
+
+variable "key_vault_purge_protection_enabled" {
+  description = "Enable purge protection for Key Vault"
+  type        = bool
+  default     = false
+}
+
+# Managed Identity for Key Vault access
+variable "container_app_managed_identity_principal_id" {
+  description = "Principal ID of the Container App's Managed Identity for Key Vault access"
+  type        = string
 } 

@@ -1,12 +1,3 @@
-terraform {
-  backend "azurerm" {
-    resource_group_name  = "terraform-state-rg"
-    storage_account_name = "tfstatetodoapp"
-    container_name       = "tfstate"
-    key                  = "dev.terraform.tfstate"
-  }
-}
-
 provider "azurerm" {
   features {}
 }
@@ -18,6 +9,14 @@ resource "azurerm_resource_group" "main" {
   tags     = var.tags
 }
 
+# User-Assigned Managed Identity for Container App
+resource "azurerm_user_assigned_identity" "container_app" {
+  name                = "${var.project_name}-backend-identity"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  tags                = var.tags
+}
+
 # Database Module
 module "database" {
   source = "../../modules/database"
@@ -27,6 +26,9 @@ module "database" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
 
+  # Database Name
+  database_name = var.database_name
+
   # MySQL Configuration
   mysql_user     = var.mysql_user
   mysql_password = var.mysql_password
@@ -34,6 +36,9 @@ module "database" {
   # PostgreSQL Configuration
   postgresql_user     = var.postgresql_user
   postgresql_password = var.postgresql_password
+
+  # Managed Identity for Key Vault access
+  container_app_managed_identity_principal_id = azurerm_user_assigned_identity.container_app.principal_id
 }
 
 # Backend Module
@@ -48,19 +53,15 @@ module "backend" {
   # Container Registry Configuration
   acr_name = var.acr_name
 
-  # Container App Configuration
-  container_app_environment_variables = {
-    DATABASE_TYPE       = var.default_database_type
-    MYSQL_HOST          = module.database.mysql_server_fqdn
-    POSTGRESQL_HOST     = module.database.postgresql_server_fqdn
-    DATABASE_NAME       = var.database_name
-    MYSQL_USER          = var.mysql_user
-    MYSQL_PASSWORD      = var.mysql_password
-    POSTGRESQL_USER     = var.postgresql_user
-    POSTGRESQL_PASSWORD = var.postgresql_password
-    MYSQL_PORT          = "3306"
-    POSTGRESQL_PORT     = "5432"
-  }
+  # Database Configuration
+  default_database_type = var.default_database_type
+
+  # Managed Identity
+  container_app_managed_identity_id = azurerm_user_assigned_identity.container_app.id
+
+  # Key Vault Secret IDs
+  mysql_database_url_secret_id      = module.database.mysql_database_url_secret_id
+  postgresql_database_url_secret_id = module.database.postgresql_database_url_secret_id
 }
 
 # Frontend Module

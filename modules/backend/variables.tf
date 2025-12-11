@@ -36,6 +36,25 @@ variable "acr_admin_enabled" {
   default     = true
 }
 
+# Log Analytics Configuration
+variable "log_analytics_workspace_name" {
+  description = "Log Analytics Workspace name (defaults to <project>-law when null)"
+  type        = string
+  default     = null
+}
+
+variable "log_analytics_workspace_sku" {
+  description = "Log Analytics Workspace SKU"
+  type        = string
+  default     = "PerGB2018"
+}
+
+variable "log_analytics_workspace_retention_in_days" {
+  description = "Log retention days for Log Analytics Workspace"
+  type        = number
+  default     = 30
+}
+
 # Container App Configuration
 variable "container_app_revision_mode" {
   description = "Container App revision mode"

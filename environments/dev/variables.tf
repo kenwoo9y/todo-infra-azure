@@ -28,6 +28,24 @@ variable "acr_name" {
   default     = "todoappdevacr"
 }
 
+variable "log_analytics_workspace_name" {
+  description = "Log Analytics Workspace name (defaults to <project>-law when null)"
+  type        = string
+  default     = null
+}
+
+variable "log_analytics_workspace_sku" {
+  description = "Log Analytics Workspace SKU"
+  type        = string
+  default     = "PerGB2018"
+}
+
+variable "log_analytics_workspace_retention_in_days" {
+  description = "Log retention days for Log Analytics Workspace"
+  type        = number
+  default     = 30
+}
+
 variable "default_database_type" {
   description = "Type of database for backend connection (mysql or postgresql)"
   type        = string

@@ -53,6 +53,11 @@ module "backend" {
   # Container Registry Configuration
   acr_name = var.acr_name
 
+  # Log Analytics Workspace
+  log_analytics_workspace_name              = var.log_analytics_workspace_name
+  log_analytics_workspace_sku               = var.log_analytics_workspace_sku
+  log_analytics_workspace_retention_in_days = var.log_analytics_workspace_retention_in_days
+
   # Database Configuration
   default_database_type = var.default_database_type
 

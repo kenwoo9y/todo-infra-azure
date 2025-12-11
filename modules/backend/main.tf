@@ -1,3 +1,17 @@
+locals {
+  log_analytics_workspace_name = coalesce(var.log_analytics_workspace_name, "${var.project_name}-law")
+}
+
+# Log Analytics Workspace for diagnostics
+resource "azurerm_log_analytics_workspace" "main" {
+  name                = local.log_analytics_workspace_name
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  sku                 = var.log_analytics_workspace_sku
+  retention_in_days   = var.log_analytics_workspace_retention_in_days
+  tags                = var.tags
+}
+
 # Container Registry
 resource "azurerm_container_registry" "acr" {
   name                = var.acr_name
@@ -10,10 +24,11 @@ resource "azurerm_container_registry" "acr" {
 
 # Container Apps Environment
 resource "azurerm_container_app_environment" "main" {
-  name                = "${var.project_name}-env"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  tags                = var.tags
+  name                       = "${var.project_name}-env"
+  resource_group_name        = var.resource_group_name
+  location                   = var.location
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
+  tags                       = var.tags
 }
 
 # Container Apps

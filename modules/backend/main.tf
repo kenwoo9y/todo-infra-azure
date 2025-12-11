@@ -8,42 +8,15 @@ resource "azurerm_container_registry" "acr" {
   tags                = var.tags
 }
 
-# Virtual Network
-resource "azurerm_virtual_network" "main" {
-  name                = "${var.project_name}-vnet"
+# Container Apps Environment
+resource "azurerm_container_app_environment" "main" {
+  name                = "${var.project_name}-env"
   resource_group_name = var.resource_group_name
   location            = var.location
-  address_space       = var.vnet_address_space
   tags                = var.tags
 }
 
-# Subnet
-resource "azurerm_subnet" "container_apps" {
-  name                 = "container-apps-subnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = var.container_apps_subnet_address_prefixes
-
-  delegation {
-    name = "delegation"
-    service_delegation {
-      name    = "Microsoft.App/containerApps"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-
-
-# Container Apps Environment
-resource "azurerm_container_app_environment" "main" {
-  name                     = "${var.project_name}-env"
-  resource_group_name      = var.resource_group_name
-  location                 = var.location
-  infrastructure_subnet_id = azurerm_subnet.container_apps.id
-  tags                     = var.tags
-}
-
-# Container App
+# Container Apps
 resource "azurerm_container_app" "backend" {
   name                         = "${var.project_name}-backend"
   container_app_environment_id = azurerm_container_app_environment.main.id
@@ -75,16 +48,23 @@ resource "azurerm_container_app" "backend" {
       memory = var.container_app_memory
 
       env {
-        name  = "DB_TYPE"
-        value = var.default_database_type
-      }
-      env {
         name        = "MYSQL_DATABASE_URL"
         secret_name = "mysql-database-url"
       }
+
       env {
         name        = "POSTGRESQL_DATABASE_URL"
         secret_name = "postgresql-database-url"
+      }
+
+      env {
+        name  = "DB_TYPE"
+        value = var.default_database_type
+      }
+
+      env {
+        name  = "CLOUD_PROVIDER"
+        value = "azure"
       }
     }
   }

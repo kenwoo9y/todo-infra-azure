@@ -36,19 +36,6 @@ variable "acr_admin_enabled" {
   default     = true
 }
 
-# Network Configuration
-variable "vnet_address_space" {
-  description = "Virtual network address space"
-  type        = list(string)
-  default     = ["10.0.0.0/16"]
-}
-
-variable "container_apps_subnet_address_prefixes" {
-  description = "Container Apps subnet address prefixes"
-  type        = list(string)
-  default     = ["10.0.1.0/24"]
-}
-
 # Container App Configuration
 variable "container_app_revision_mode" {
   description = "Container App revision mode"

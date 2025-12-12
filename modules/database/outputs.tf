@@ -1,11 +1,11 @@
 output "mysql_server_fqdn" {
   description = "MySQL server FQDN"
-  value       = azurerm_mysql_server.main.fqdn
+  value       = azurerm_mysql_flexible_server.main.fqdn
 }
 
 output "postgresql_server_fqdn" {
   description = "PostgreSQL server FQDN"
-  value       = azurerm_postgresql_server.main.fqdn
+  value       = azurerm_postgresql_flexible_server.main.fqdn
 }
 
 output "mysql_port" {

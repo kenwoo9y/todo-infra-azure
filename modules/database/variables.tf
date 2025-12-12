@@ -67,30 +67,6 @@ variable "mysql_geo_redundant_backup_enabled" {
   default     = false
 }
 
-variable "mysql_infrastructure_encryption_enabled" {
-  description = "Enable MySQL infrastructure encryption"
-  type        = bool
-  default     = false
-}
-
-variable "mysql_public_network_access_enabled" {
-  description = "Enable MySQL public network access"
-  type        = bool
-  default     = true
-}
-
-variable "mysql_ssl_enforcement_enabled" {
-  description = "Enable MySQL SSL enforcement"
-  type        = bool
-  default     = true
-}
-
-variable "mysql_ssl_minimal_tls_version_enforced" {
-  description = "MySQL minimum TLS version"
-  type        = string
-  default     = "TLS1_2"
-}
-
 # PostgreSQL Configuration
 variable "postgresql_user" {
   description = "PostgreSQL username"
@@ -138,30 +114,6 @@ variable "postgresql_geo_redundant_backup_enabled" {
   description = "Enable PostgreSQL geo-redundant backup"
   type        = bool
   default     = false
-}
-
-variable "postgresql_infrastructure_encryption_enabled" {
-  description = "Enable PostgreSQL infrastructure encryption"
-  type        = bool
-  default     = false
-}
-
-variable "postgresql_public_network_access_enabled" {
-  description = "Enable PostgreSQL public network access"
-  type        = bool
-  default     = true
-}
-
-variable "postgresql_ssl_enforcement_enabled" {
-  description = "Enable PostgreSQL SSL enforcement"
-  type        = bool
-  default     = true
-}
-
-variable "postgresql_ssl_minimal_tls_version_enforced" {
-  description = "PostgreSQL minimum TLS version"
-  type        = string
-  default     = "TLS1_2"
 }
 
 # Database Name

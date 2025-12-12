@@ -18,15 +18,39 @@ variable "tags" {
   type        = map(string)
 }
 
+variable "environment" {
+  description = "Environment name"
+  type        = string
+}
+
+variable "name_prefix" {
+  description = "Name prefix for resources"
+  type        = string
+  default     = "todo"
+}
+
+# Database Names
+variable "mysql_database_name" {
+  description = "MySQL database name"
+  type        = string
+  default     = "todo_mysql_db"
+}
+
+variable "postgresql_database_name" {
+  description = "PostgreSQL database name"
+  type        = string
+  default     = "todo_postgresql_db"
+}
+
 # MySQL Configuration
 variable "mysql_user" {
-  description = "MySQL username"
+  description = "MySQL database user name"
   type        = string
-  sensitive   = true
+  default     = "todo_mysql_user"
 }
 
 variable "mysql_password" {
-  description = "MySQL password"
+  description = "MySQL database user password"
   type        = string
   sensitive   = true
 }
@@ -69,13 +93,13 @@ variable "mysql_geo_redundant_backup_enabled" {
 
 # PostgreSQL Configuration
 variable "postgresql_user" {
-  description = "PostgreSQL username"
+  description = "PostgreSQL database user name"
   type        = string
-  sensitive   = true
+  default     = "todo_postgresql_user"
 }
 
 variable "postgresql_password" {
-  description = "PostgreSQL password"
+  description = "PostgreSQL database user password"
   type        = string
   sensitive   = true
 }
@@ -114,12 +138,6 @@ variable "postgresql_geo_redundant_backup_enabled" {
   description = "Enable PostgreSQL geo-redundant backup"
   type        = bool
   default     = false
-}
-
-# Database Name
-variable "database_name" {
-  description = "Database name used for both engines"
-  type        = string
 }
 
 # Key Vault Configuration

@@ -21,23 +21,18 @@ resource "azurerm_user_assigned_identity" "container_app" {
 module "database" {
   source = "../../modules/database"
 
-  project_name        = var.project_name
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  tags                = var.tags
-
-  # Database Name
-  database_name = var.database_name
-
-  # MySQL Configuration
-  mysql_user     = var.mysql_user
-  mysql_password = var.mysql_password
-
-  # PostgreSQL Configuration
-  postgresql_user     = var.postgresql_user
-  postgresql_password = var.postgresql_password
-
-  # Managed Identity for Key Vault access
+  project_name                                = var.project_name
+  location                                    = var.location
+  resource_group_name                         = var.resource_group_name
+  tags                                        = var.tags
+  environment                                 = var.environment
+  name_prefix                                 = var.name_prefix
+  mysql_database_name                         = var.mysql_database_name
+  postgresql_database_name                    = var.postgresql_database_name
+  mysql_user                                  = var.mysql_user
+  postgresql_user                             = var.postgresql_user
+  mysql_password                              = var.mysql_password
+  postgresql_password                         = var.postgresql_password
   container_app_managed_identity_principal_id = azurerm_user_assigned_identity.container_app.principal_id
 }
 

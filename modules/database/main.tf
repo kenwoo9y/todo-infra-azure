@@ -1,6 +1,6 @@
 # MySQL Flexible Server
 resource "azurerm_mysql_flexible_server" "main" {
-  name                   = "${var.project_name}-mysql"
+  name                   = "${var.environment}-${var.name_prefix}-mysql-server"
   resource_group_name    = var.resource_group_name
   location               = var.location
   administrator_login    = var.mysql_user
@@ -22,7 +22,7 @@ resource "azurerm_mysql_flexible_server" "main" {
 
 # MySQL Flexible Database
 resource "azurerm_mysql_flexible_database" "main" {
-  name                = var.database_name
+  name                = var.mysql_database_name
   resource_group_name = var.resource_group_name
   server_name         = azurerm_mysql_flexible_server.main.name
   charset             = "utf8mb4"
@@ -31,7 +31,7 @@ resource "azurerm_mysql_flexible_database" "main" {
 
 # PostgreSQL Flexible Server
 resource "azurerm_postgresql_flexible_server" "main" {
-  name                   = "${var.project_name}-postgresql"
+  name                   = "${var.environment}-${var.name_prefix}-postgresql-server"
   resource_group_name    = var.resource_group_name
   location               = var.location
   administrator_login    = var.postgresql_user
@@ -50,7 +50,7 @@ resource "azurerm_postgresql_flexible_server" "main" {
 
 # PostgreSQL Flexible Database
 resource "azurerm_postgresql_flexible_server_database" "main" {
-  name      = var.database_name
+  name      = var.postgresql_database_name
   server_id = azurerm_postgresql_flexible_server.main.id
   charset   = "UTF8"
   collation = "en_US.utf8"
@@ -98,7 +98,7 @@ resource "azurerm_role_assignment" "key_vault_secrets_user" {
 # Key Vault Secrets
 resource "azurerm_key_vault_secret" "mysql_database_url" {
   name         = "mysql-database-url"
-  value        = "mysql://${var.mysql_user}:${urlencode(var.mysql_password)}@${azurerm_mysql_flexible_server.main.fqdn}:3306/${var.database_name}"
+  value        = "mysql://${var.mysql_user}:${urlencode(var.mysql_password)}@${azurerm_mysql_flexible_server.main.fqdn}:3306/${var.mysql_database_name}"
   key_vault_id = azurerm_key_vault.main.id
 
   depends_on = [
@@ -111,7 +111,7 @@ resource "azurerm_key_vault_secret" "mysql_database_url" {
 
 resource "azurerm_key_vault_secret" "postgresql_database_url" {
   name         = "postgresql-database-url"
-  value        = "postgresql://${var.postgresql_user}:${urlencode(var.postgresql_password)}@${azurerm_postgresql_flexible_server.main.fqdn}:5432/${var.database_name}"
+  value        = "postgresql://${var.postgresql_user}:${urlencode(var.postgresql_password)}@${azurerm_postgresql_flexible_server.main.fqdn}:5432/${var.postgresql_database_name}"
   key_vault_id = azurerm_key_vault.main.id
 
   depends_on = [

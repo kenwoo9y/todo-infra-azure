@@ -41,13 +41,14 @@ output "postgresql_server_fqdn" {
 output "database_connection_info" {
   description = "Database connection information"
   value = {
-    mysql_host      = module.database.mysql_server_fqdn
-    postgresql_host = module.database.postgresql_server_fqdn
-    mysql_port      = "3306"
-    postgresql_port = "5432"
-    database        = var.database_name
-    mysql_user      = var.mysql_user
-    postgresql_user = var.postgresql_user
+    mysql_host          = module.database.mysql_server_fqdn
+    postgresql_host     = module.database.postgresql_server_fqdn
+    mysql_port          = "3306"
+    postgresql_port     = "5432"
+    mysql_database      = var.mysql_database_name
+    postgresql_database = var.postgresql_database_name
+    mysql_user          = var.mysql_user
+    postgresql_user     = var.postgresql_user
   }
   sensitive = true
 } 

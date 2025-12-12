@@ -64,13 +64,7 @@ variable "mysql_sku_name" {
 variable "mysql_storage_mb" {
   description = "MySQL storage size (MB)"
   type        = number
-  default     = 5120
-}
-
-variable "mysql_version" {
-  description = "MySQL version"
-  type        = string
-  default     = "5.7"
+  default     = 20480
 }
 
 variable "mysql_auto_grow_enabled" {
@@ -82,7 +76,7 @@ variable "mysql_auto_grow_enabled" {
 variable "mysql_backup_retention_days" {
   description = "MySQL backup retention days"
   type        = number
-  default     = 7
+  default     = 1
 }
 
 variable "mysql_geo_redundant_backup_enabled" {
@@ -113,13 +107,7 @@ variable "postgresql_sku_name" {
 variable "postgresql_storage_mb" {
   description = "PostgreSQL storage size (MB)"
   type        = number
-  default     = 5120
-}
-
-variable "postgresql_version" {
-  description = "PostgreSQL version"
-  type        = string
-  default     = "11"
+  default     = 32768
 }
 
 variable "postgresql_auto_grow_enabled" {
@@ -131,7 +119,7 @@ variable "postgresql_auto_grow_enabled" {
 variable "postgresql_backup_retention_days" {
   description = "PostgreSQL backup retention days"
   type        = number
-  default     = 7
+  default     = 1
 }
 
 variable "postgresql_geo_redundant_backup_enabled" {

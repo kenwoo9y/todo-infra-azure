@@ -5,7 +5,7 @@ resource "azurerm_mysql_flexible_server" "main" {
   location               = var.location
   administrator_login    = var.mysql_user
   administrator_password = var.mysql_password
-  version                = var.mysql_version
+  version                = "8.0"
 
   sku_name = var.mysql_sku_name
 
@@ -36,7 +36,7 @@ resource "azurerm_postgresql_flexible_server" "main" {
   location               = var.location
   administrator_login    = var.postgresql_user
   administrator_password = var.postgresql_password
-  version                = var.postgresql_version
+  version                = "16.0"
 
   sku_name   = var.postgresql_sku_name
   storage_mb = var.postgresql_storage_mb

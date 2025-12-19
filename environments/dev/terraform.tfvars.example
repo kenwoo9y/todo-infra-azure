@@ -5,25 +5,29 @@ location     = "japaneast"
 # Resource Group
 resource_group_name = "todo-app-dev-rg"
 
+# Database passwords (Required)
+mysql_password = "your-mysql-secure-password"
+postgresql_password = "your-postgresql-secure-password"
+
 # Storage Account
 storage_account_name = "todoappdevstorage"
 
 # Azure Container Registry
 acr_name = "todoappdevacr"
 
-# Backend Database Configuration
-default_database_type = "mysql"  # "mysql" or "postgresql"
-database_name = "todoapp_dev"
+# Environment settings (Optional)
+environment = "dev"
+name_prefix = "todo"
 
-# MySQL Configuration (both databases will be deployed)
-# Password is set via environment variable MYSQL_PASSWORD
-mysql_user = "todoapp_user"
-# mysql_password = "Set from environment variable MYSQL_PASSWORD"
+# Default database type (Optional)
+# Choose "mysql" or "postgresql"
+default_database_type = "mysql"
 
-# PostgreSQL Configuration (both databases will be deployed)
-# Password is set via environment variable POSTGRESQL_PASSWORD
-postgresql_user = "todoapp_user"
-# postgresql_password = "Set from environment variable POSTGRESQL_PASSWORD"
+# Database names and user names (Optional)
+mysql_database_name = "todo_mysql_db"
+postgresql_database_name = "todo_postgresql_db"
+mysql_user = "todo_mysql_user"
+postgresql_user = "todo_postgresql_user"
 
 # Tags
 tags = {

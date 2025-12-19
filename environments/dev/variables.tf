@@ -28,46 +28,76 @@ variable "acr_name" {
   default     = "todoappdevacr"
 }
 
-variable "default_database_type" {
-  description = "Type of database for backend connection (mysql or postgresql)"
+variable "log_analytics_workspace_name" {
+  description = "Log Analytics Workspace name (defaults to <project>-law when null)"
   type        = string
-  default     = "mysql"
-  validation {
-    condition     = contains(["mysql", "postgresql"], var.default_database_type)
-    error_message = "default_database_type must be 'mysql' or 'postgresql'."
-  }
+  default     = null
 }
 
-variable "database_name" {
-  description = "Database name"
+variable "log_analytics_workspace_sku" {
+  description = "Log Analytics Workspace SKU"
   type        = string
-  default     = "todoapp_dev"
+  default     = "PerGB2018"
+}
+
+variable "log_analytics_workspace_retention_in_days" {
+  description = "Log retention days for Log Analytics Workspace"
+  type        = number
+  default     = 30
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "dev"
+}
+
+variable "name_prefix" {
+  description = "Name prefix for resources"
+  type        = string
+  default     = "todo"
+}
+
+variable "mysql_database_name" {
+  description = "MySQL database name"
+  type        = string
+  default     = "todo_mysql_db"
+}
+
+variable "postgresql_database_name" {
+  description = "PostgreSQL database name"
+  type        = string
+  default     = "todo_postgresql_db"
 }
 
 variable "mysql_user" {
   description = "MySQL username"
   type        = string
-  default     = "todoapp_user"
-  sensitive   = true
-}
-
-variable "mysql_password" {
-  description = "MySQL password (pass from environment variable MYSQL_PASSWORD)"
-  type        = string
-  sensitive   = true
+  default     = "todo_mysql_user"
 }
 
 variable "postgresql_user" {
   description = "PostgreSQL username"
   type        = string
-  default     = "todoapp_user"
+  default     = "todo_postgresql_user"
+}
+
+variable "mysql_password" {
+  description = "MySQL database user password"
+  type        = string
   sensitive   = true
 }
 
 variable "postgresql_password" {
-  description = "PostgreSQL password (pass from environment variable POSTGRESQL_PASSWORD)"
+  description = "PostgreSQL database user password"
   type        = string
   sensitive   = true
+}
+
+variable "default_database_type" {
+  description = "Default database type (mysql or postgresql)"
+  type        = string
+  default     = "mysql"
 }
 
 variable "tags" {

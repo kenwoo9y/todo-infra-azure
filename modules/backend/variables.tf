@@ -36,17 +36,23 @@ variable "acr_admin_enabled" {
   default     = true
 }
 
-# Network Configuration
-variable "vnet_address_space" {
-  description = "Virtual network address space"
-  type        = list(string)
-  default     = ["10.0.0.0/16"]
+# Log Analytics Configuration
+variable "log_analytics_workspace_name" {
+  description = "Log Analytics Workspace name (defaults to <project>-law when null)"
+  type        = string
+  default     = null
 }
 
-variable "container_apps_subnet_address_prefixes" {
-  description = "Container Apps subnet address prefixes"
-  type        = list(string)
-  default     = ["10.0.1.0/24"]
+variable "log_analytics_workspace_sku" {
+  description = "Log Analytics Workspace SKU"
+  type        = string
+  default     = "PerGB2018"
+}
+
+variable "log_analytics_workspace_retention_in_days" {
+  description = "Log retention days for Log Analytics Workspace"
+  type        = number
+  default     = 30
 }
 
 # Container App Configuration
@@ -80,10 +86,10 @@ variable "container_app_memory" {
   default     = "0.5Gi"
 }
 
-variable "container_app_environment_variables" {
-  description = "Container App environment variables"
-  type        = map(string)
-  default     = {}
+# Database Configuration
+variable "default_database_type" {
+  description = "Type of database (mysql or postgresql)"
+  type        = string
 }
 
 variable "container_app_allow_insecure_connections" {
@@ -102,4 +108,20 @@ variable "container_app_target_port" {
   description = "Container App target port"
   type        = number
   default     = 8080
+}
+
+# Key Vault Configuration
+variable "container_app_managed_identity_id" {
+  description = "Managed Identity ID for Container App"
+  type        = string
+}
+
+variable "mysql_database_url_secret_id" {
+  description = "Key Vault secret ID for MySQL database URL"
+  type        = string
+}
+
+variable "postgresql_database_url_secret_id" {
+  description = "Key Vault secret ID for PostgreSQL database URL"
+  type        = string
 } 

@@ -41,12 +41,10 @@ module "backend" {
   source = "../../modules/backend"
 
   project_name        = var.project_name
-  resource_group_name = var.resource_group_name
   location            = var.location
+  resource_group_name = var.resource_group_name
   tags                = var.tags
-
-  # Container Registry Configuration
-  acr_name = var.acr_name
+  name_prefix         = var.name_prefix
 
   # Log Analytics Workspace
   log_analytics_workspace_name              = var.log_analytics_workspace_name

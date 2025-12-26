@@ -18,10 +18,10 @@ variable "tags" {
   type        = map(string)
 }
 
-# Container Registry Configuration
-variable "acr_name" {
-  description = "Azure Container Registry name"
+variable "name_prefix" {
+  description = "Name prefix for resources"
   type        = string
+  default     = "todo"
 }
 
 variable "acr_sku" {

@@ -10,6 +10,18 @@ variable "location" {
   default     = "japaneast"
 }
 
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "dev"
+}
+
+variable "name_prefix" {
+  description = "Name prefix for resources"
+  type        = string
+  default     = "todo"
+}
+
 variable "project_name" {
   description = "Project name (used as prefix for resource names)"
   type        = string
@@ -20,12 +32,6 @@ variable "storage_account_name" {
   description = "Storage account name"
   type        = string
   default     = "todoappdevstorage"
-}
-
-variable "acr_name" {
-  description = "Azure Container Registry name"
-  type        = string
-  default     = "todoappdevacr"
 }
 
 variable "log_analytics_workspace_name" {
@@ -44,18 +50,6 @@ variable "log_analytics_workspace_retention_in_days" {
   description = "Log retention days for Log Analytics Workspace"
   type        = number
   default     = 30
-}
-
-variable "environment" {
-  description = "Environment name"
-  type        = string
-  default     = "dev"
-}
-
-variable "name_prefix" {
-  description = "Name prefix for resources"
-  type        = string
-  default     = "todo"
 }
 
 variable "mysql_database_name" {

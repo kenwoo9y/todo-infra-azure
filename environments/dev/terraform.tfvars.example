@@ -12,9 +12,6 @@ postgresql_password = "your-postgresql-secure-password"
 # Storage Account
 storage_account_name = "todoappdevstorage"
 
-# Azure Container Registry
-acr_name = "todoappdevacr"
-
 # Environment settings (Optional)
 environment = "dev"
 name_prefix = "todo"

@@ -14,9 +14,9 @@ resource "azurerm_log_analytics_workspace" "main" {
 
 # Container Registry
 resource "azurerm_container_registry" "acr" {
-  name                = var.acr_name
-  resource_group_name = var.resource_group_name
   location            = var.location
+  name                = "${var.name_prefix}-repository"
+  resource_group_name = var.resource_group_name
   sku                 = var.acr_sku
   admin_enabled       = var.acr_admin_enabled
   tags                = var.tags

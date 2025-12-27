@@ -4,15 +4,15 @@ provider "azurerm" {
 
 # Resource Group
 resource "azurerm_resource_group" "main" {
-  name     = var.resource_group_name
+  name     = "${var.name_prefix}-${var.environment}-rg"
   location = var.location
   tags     = var.tags
 }
 
 # User-Assigned Managed Identity for Container App
 resource "azurerm_user_assigned_identity" "container_app" {
-  name                = "${var.project_name}-backend-identity"
-  resource_group_name = var.resource_group_name
+  name                = "${var.name_prefix}-${var.environment}-backend-identity"
+  resource_group_name = "${var.name_prefix}-${var.environment}-rg"
   location            = var.location
   tags                = var.tags
 }
@@ -21,9 +21,9 @@ resource "azurerm_user_assigned_identity" "container_app" {
 module "database" {
   source = "../../modules/database"
 
-  project_name                                = var.project_name
+  project_name                                = "${var.name_prefix}-${var.environment}"
   location                                    = var.location
-  resource_group_name                         = var.resource_group_name
+  resource_group_name                         = "${var.name_prefix}-${var.environment}-rg"
   tags                                        = var.tags
   environment                                 = var.environment
   name_prefix                                 = var.name_prefix
@@ -40,9 +40,9 @@ module "database" {
 module "backend" {
   source = "../../modules/backend"
 
-  project_name        = var.project_name
+  project_name        = "${var.name_prefix}-${var.environment}"
   location            = var.location
-  resource_group_name = var.resource_group_name
+  resource_group_name = "${var.name_prefix}-${var.environment}-rg"
   tags                = var.tags
   name_prefix         = var.name_prefix
 
@@ -66,13 +66,13 @@ module "backend" {
 module "frontend" {
   source = "../../modules/frontend"
 
-  project_name        = var.project_name
-  resource_group_name = var.resource_group_name
+  project_name        = "${var.name_prefix}-${var.environment}"
+  resource_group_name = "${var.name_prefix}-${var.environment}-rg"
   location            = var.location
   tags                = var.tags
 
   # Storage Account Configuration
-  storage_account_name = var.storage_account_name
+  storage_account_name = "${var.name_prefix}-${var.environment}-storage"
 
   # Backend Configuration
   backend_host_header = module.backend.container_app_url

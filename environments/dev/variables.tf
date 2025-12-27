@@ -1,37 +1,17 @@
-variable "resource_group_name" {
-  description = "Name of the resource group"
-  type        = string
-  default     = "todo-app-dev-rg"
-}
-
 variable "location" {
   description = "Azure region"
   type        = string
-  default     = "japaneast"
 }
 
 variable "environment" {
   description = "Environment name"
   type        = string
-  default     = "dev"
 }
 
 variable "name_prefix" {
   description = "Name prefix for resources"
   type        = string
   default     = "todo"
-}
-
-variable "project_name" {
-  description = "Project name (used as prefix for resource names)"
-  type        = string
-  default     = "todoapp-dev"
-}
-
-variable "storage_account_name" {
-  description = "Storage account name"
-  type        = string
-  default     = "todoappdevstorage"
 }
 
 variable "log_analytics_workspace_name" {

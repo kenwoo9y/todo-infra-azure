@@ -1,16 +1,9 @@
-# Project Configuration
-project_name = "todoapp-dev"
+# Azure Region (Optional)
 location     = "japaneast"
-
-# Resource Group
-resource_group_name = "todo-app-dev-rg"
 
 # Database passwords (Required)
 mysql_password = "your-mysql-secure-password"
 postgresql_password = "your-postgresql-secure-password"
-
-# Storage Account
-storage_account_name = "todoappdevstorage"
 
 # Environment settings (Optional)
 environment = "dev"

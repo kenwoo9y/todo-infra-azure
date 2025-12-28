@@ -21,9 +21,7 @@ resource "azurerm_user_assigned_identity" "container_app" {
 module "database" {
   source = "../../modules/database"
 
-  project_name                                = "${var.name_prefix}-${var.environment}"
   location                                    = var.location
-  resource_group_name                         = "${var.name_prefix}-${var.environment}-rg"
   tags                                        = var.tags
   environment                                 = var.environment
   name_prefix                                 = var.name_prefix
@@ -40,11 +38,11 @@ module "database" {
 module "backend" {
   source = "../../modules/backend"
 
-  project_name        = "${var.name_prefix}-${var.environment}"
   location            = var.location
   resource_group_name = "${var.name_prefix}-${var.environment}-rg"
   tags                = var.tags
   name_prefix         = var.name_prefix
+  environment         = var.environment
 
   # Log Analytics Workspace
   log_analytics_workspace_name              = var.log_analytics_workspace_name
@@ -66,10 +64,11 @@ module "backend" {
 module "frontend" {
   source = "../../modules/frontend"
 
-  project_name        = "${var.name_prefix}-${var.environment}"
   resource_group_name = "${var.name_prefix}-${var.environment}-rg"
   location            = var.location
   tags                = var.tags
+  name_prefix         = var.name_prefix
+  environment         = var.environment
 
   # Storage Account Configuration
   storage_account_name = "${var.name_prefix}-${var.environment}-storage"

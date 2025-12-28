@@ -1,7 +1,11 @@
+locals {
+  project_name = "${var.name_prefix}-${var.environment}"
+}
+
 # MySQL Flexible Server
 resource "azurerm_mysql_flexible_server" "main" {
-  name                   = "${var.environment}-${var.name_prefix}-mysql-server"
-  resource_group_name    = var.resource_group_name
+  name                   = "${local.project_name}-mysql-server"
+  resource_group_name    = "${var.name_prefix}-${var.environment}-rg"
   location               = var.location
   administrator_login    = var.mysql_user
   administrator_password = var.mysql_password
@@ -23,7 +27,7 @@ resource "azurerm_mysql_flexible_server" "main" {
 # MySQL Flexible Database
 resource "azurerm_mysql_flexible_database" "main" {
   name                = var.mysql_database_name
-  resource_group_name = var.resource_group_name
+  resource_group_name = "${local.project_name}-rg"
   server_name         = azurerm_mysql_flexible_server.main.name
   charset             = "utf8mb4"
   collation           = "utf8mb4_unicode_ci"
@@ -31,8 +35,8 @@ resource "azurerm_mysql_flexible_database" "main" {
 
 # PostgreSQL Flexible Server
 resource "azurerm_postgresql_flexible_server" "main" {
-  name                   = "${var.environment}-${var.name_prefix}-postgresql-server"
-  resource_group_name    = var.resource_group_name
+  name                   = "${local.project_name}-postgresql-server"
+  resource_group_name    = "${local.project_name}-rg"
   location               = var.location
   administrator_login    = var.postgresql_user
   administrator_password = var.postgresql_password
@@ -61,9 +65,9 @@ data "azurerm_client_config" "current" {}
 
 # Key Vault
 resource "azurerm_key_vault" "main" {
-  name                = "${replace(var.project_name, "-", "")}kv"
+  name                = "${local.project_name}-kv"
   location            = var.location
-  resource_group_name = var.resource_group_name
+  resource_group_name = "${local.project_name}-rg"
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = var.key_vault_sku_name
 

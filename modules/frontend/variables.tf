@@ -1,8 +1,3 @@
-variable "project_name" {
-  description = "Project name"
-  type        = string
-}
-
 variable "resource_group_name" {
   description = "Resource group name"
   type        = string
@@ -16,6 +11,17 @@ variable "location" {
 variable "tags" {
   description = "Tags to apply to resources"
   type        = map(string)
+}
+
+variable "name_prefix" {
+  description = "Name prefix for resources"
+  type        = string
+  default     = "todo"
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
 }
 
 # Storage Account Configuration

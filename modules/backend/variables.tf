@@ -1,8 +1,3 @@
-variable "project_name" {
-  description = "Project name"
-  type        = string
-}
-
 variable "resource_group_name" {
   description = "Resource group name"
   type        = string
@@ -22,6 +17,11 @@ variable "name_prefix" {
   description = "Name prefix for resources"
   type        = string
   default     = "todo"
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
 }
 
 variable "acr_sku" {

@@ -1,3 +1,7 @@
+locals {
+  project_name = "${var.name_prefix}-${var.environment}"
+}
+
 # Storage Account (for frontend)
 resource "azurerm_storage_account" "frontend" {
   name                     = var.storage_account_name
@@ -19,14 +23,14 @@ resource "azurerm_storage_account_static_website" "frontend" {
 
 # Front Door
 resource "azurerm_frontdoor" "main" {
-  name                = "${var.project_name}-frontdoor"
+  name                = "${local.project_name}-frontdoor"
   resource_group_name = var.resource_group_name
 
   routing_rule {
     name               = "frontend-rule"
     accepted_protocols = var.front_door_accepted_protocols
     patterns_to_match  = var.front_door_frontend_patterns
-    frontend_endpoints = ["${var.project_name}-frontend"]
+    frontend_endpoints = ["${local.project_name}-frontend"]
     forwarding_configuration {
       forwarding_protocol = var.front_door_forwarding_protocol
       backend_pool_name   = "frontend-pool"
@@ -37,7 +41,7 @@ resource "azurerm_frontdoor" "main" {
     name               = "backend-rule"
     accepted_protocols = var.front_door_accepted_protocols
     patterns_to_match  = var.front_door_backend_patterns
-    frontend_endpoints = ["${var.project_name}-frontend"]
+    frontend_endpoints = ["${local.project_name}-frontend"]
     forwarding_configuration {
       forwarding_protocol = var.front_door_forwarding_protocol
       backend_pool_name   = "backend-pool"
@@ -79,8 +83,8 @@ resource "azurerm_frontdoor" "main" {
   }
 
   frontend_endpoint {
-    name                         = "${var.project_name}-frontend"
-    host_name                    = "${var.project_name}-frontdoor.azurefd.net"
+    name                         = "${local.project_name}-frontend"
+    host_name                    = "${local.project_name}-frontdoor.azurefd.net"
     session_affinity_enabled     = var.front_door_session_affinity_enabled
     session_affinity_ttl_seconds = var.front_door_session_affinity_ttl_seconds
   }

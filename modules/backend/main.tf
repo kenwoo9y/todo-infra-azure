@@ -97,6 +97,11 @@ resource "azurerm_container_app" "backend" {
         name  = "CLOUD_PROVIDER"
         value = "azure"
       }
+
+      env {
+        name  = "CORS_ORIGINS"
+        value = var.frontend_url
+      }
     }
   }
 

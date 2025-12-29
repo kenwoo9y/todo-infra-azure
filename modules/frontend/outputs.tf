@@ -8,6 +8,11 @@ output "storage_account_primary_web_endpoint" {
   value       = azurerm_storage_account_static_website.frontend.primary_web_host
 }
 
+output "frontend_url" {
+  description = "Frontend URL (Storage Account Static Website URL)"
+  value       = "https://${azurerm_storage_account_static_website.frontend.primary_web_host}"
+}
+
 output "front_door_url" {
   description = "Azure Front Door URL"
   value       = azurerm_frontdoor.main.frontend_endpoint[0].host_name

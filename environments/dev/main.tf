@@ -66,6 +66,9 @@ module "backend" {
   # Key Vault Secret IDs
   mysql_database_url_secret_id      = module.database.mysql_database_url_secret_id
   postgresql_database_url_secret_id = module.database.postgresql_database_url_secret_id
+
+  # CORS Configuration
+  frontend_url = module.frontend.frontend_url
 }
 
 # Frontend Module

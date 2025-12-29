@@ -118,4 +118,10 @@ variable "mysql_database_url_secret_id" {
 variable "postgresql_database_url_secret_id" {
   description = "Key Vault secret ID for PostgreSQL database URL"
   type        = string
+}
+
+variable "frontend_url" {
+  description = "CORS allowed origins (comma-separated URLs)"
+  type        = string
+  default     = ""
 } 

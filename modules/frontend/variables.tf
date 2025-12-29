@@ -93,11 +93,13 @@ variable "front_door_session_affinity_ttl_seconds" {
 
 # Backend Configuration
 variable "backend_host_header" {
-  description = "Backend host header"
+  description = "Backend host header (optional, if null backend pool will not be created)"
   type        = string
+  default     = null
 }
 
 variable "backend_address" {
-  description = "Backend address"
+  description = "Backend address (optional, if null backend pool will not be created)"
   type        = string
+  default     = null
 } 

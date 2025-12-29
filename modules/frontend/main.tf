@@ -37,14 +37,17 @@ resource "azurerm_frontdoor" "main" {
     }
   }
 
-  routing_rule {
-    name               = "backend-rule"
-    accepted_protocols = var.front_door_accepted_protocols
-    patterns_to_match  = var.front_door_backend_patterns
-    frontend_endpoints = ["${local.project_name}-frontend"]
-    forwarding_configuration {
-      forwarding_protocol = var.front_door_forwarding_protocol
-      backend_pool_name   = "backend-pool"
+  dynamic "routing_rule" {
+    for_each = var.backend_host_header != null && var.backend_address != null ? [1] : []
+    content {
+      name               = "backend-rule"
+      accepted_protocols = var.front_door_accepted_protocols
+      patterns_to_match  = var.front_door_backend_patterns
+      frontend_endpoints = ["${local.project_name}-frontend"]
+      forwarding_configuration {
+        forwarding_protocol = var.front_door_forwarding_protocol
+        backend_pool_name   = "backend-pool"
+      }
     }
   }
 
@@ -69,17 +72,20 @@ resource "azurerm_frontdoor" "main" {
     health_probe_name   = "healthProbeSettings1"
   }
 
-  backend_pool {
-    name = "backend-pool"
-    backend {
-      host_header = var.backend_host_header
-      address     = var.backend_address
-      http_port   = 80
-      https_port  = 443
-    }
+  dynamic "backend_pool" {
+    for_each = var.backend_host_header != null && var.backend_address != null ? [1] : []
+    content {
+      name = "backend-pool"
+      backend {
+        host_header = var.backend_host_header
+        address     = var.backend_address
+        http_port   = 80
+        https_port  = 443
+      }
 
-    load_balancing_name = "loadBalancingSettings1"
-    health_probe_name   = "healthProbeSettings1"
+      load_balancing_name = "loadBalancingSettings1"
+      health_probe_name   = "healthProbeSettings1"
+    }
   }
 
   frontend_endpoint {

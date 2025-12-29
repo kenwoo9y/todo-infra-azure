@@ -25,6 +25,7 @@ resource "azurerm_container_registry" "acr" {
 
 # Container Apps Environment
 resource "azurerm_container_app_environment" "main" {
+  count                      = var.container_image != "" ? 1 : 0
   name                       = "${local.project_name}-env"
   resource_group_name        = var.resource_group_name
   location                   = var.location
@@ -32,16 +33,30 @@ resource "azurerm_container_app_environment" "main" {
   tags                       = var.tags
 }
 
+# Role assignment for Container Registry pull access
+resource "azurerm_role_assignment" "acr_pull" {
+  count                = var.container_image != "" ? 1 : 0
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPull"
+  principal_id         = var.container_app_managed_identity_id
+}
+
 # Container Apps
 resource "azurerm_container_app" "backend" {
+  count                        = var.container_image != "" ? 1 : 0
   name                         = "${local.project_name}-backend"
-  container_app_environment_id = azurerm_container_app_environment.main.id
+  container_app_environment_id = azurerm_container_app_environment.main[0].id
   resource_group_name          = var.resource_group_name
   revision_mode                = var.container_app_revision_mode
 
   identity {
     type         = "UserAssigned"
     identity_ids = [var.container_app_managed_identity_id]
+  }
+
+  registry {
+    server   = azurerm_container_registry.acr.login_server
+    identity = var.container_app_managed_identity_id
   }
 
   secret {
@@ -59,7 +74,7 @@ resource "azurerm_container_app" "backend" {
   template {
     container {
       name   = "backend"
-      image  = "${azurerm_container_registry.acr.login_server}/${var.container_app_image_name}:${var.container_app_image_tag}"
+      image  = var.container_image
       cpu    = var.container_app_cpu
       memory = var.container_app_memory
 

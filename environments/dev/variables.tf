@@ -74,6 +74,12 @@ variable "default_database_type" {
   default     = "mysql"
 }
 
+variable "container_image" {
+  description = "Full container image path (e.g., <registry-name>.azurecr.io/backend:latest). If null or empty, Container Apps will not be deployed."
+  type        = string
+  default     = ""
+}
+
 variable "tags" {
   description = "Tags to apply to resources"
   type        = map(string)

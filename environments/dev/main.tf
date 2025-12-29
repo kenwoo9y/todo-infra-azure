@@ -49,6 +49,9 @@ module "backend" {
   name_prefix         = var.name_prefix
   environment         = var.environment
 
+  # Container Image
+  container_image = var.container_image
+
   # Log Analytics Workspace
   log_analytics_workspace_name              = var.log_analytics_workspace_name
   log_analytics_workspace_sku               = var.log_analytics_workspace_sku
@@ -79,6 +82,6 @@ module "frontend" {
   storage_account_name = "${var.name_prefix}-${var.environment}-storage"
 
   # Backend Configuration
-  backend_host_header = module.backend.container_app_url
-  backend_address     = module.backend.container_app_url
+  backend_host_header = var.container_image != "" ? module.backend.container_app_url : null
+  backend_address     = var.container_image != "" ? module.backend.container_app_url : null
 } 

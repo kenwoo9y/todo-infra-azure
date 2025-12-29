@@ -62,16 +62,10 @@ variable "container_app_revision_mode" {
   default     = "Single"
 }
 
-variable "container_app_image_name" {
-  description = "Container App image name"
+variable "container_image" {
+  description = "Container image URL (optional, leave empty to skip Container Apps service creation)"
   type        = string
-  default     = "backend"
-}
-
-variable "container_app_image_tag" {
-  description = "Container App image tag"
-  type        = string
-  default     = "latest"
+  default     = ""
 }
 
 variable "container_app_cpu" {

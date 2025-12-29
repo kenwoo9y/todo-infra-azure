@@ -1,3 +1,6 @@
+# Azure Subscription ID (Required)
+# subscription_id = "your-subscription-id"
+
 # Azure Region (Optional)
 location     = "japaneast"
 

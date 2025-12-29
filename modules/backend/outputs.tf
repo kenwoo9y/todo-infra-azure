@@ -5,12 +5,12 @@ output "container_registry_login_server" {
 
 output "container_app_url" {
   description = "Container App URL"
-  value       = azurerm_container_app.backend.latest_revision_fqdn
+  value       = var.container_image != "" ? azurerm_container_app.backend[0].latest_revision_fqdn : null
 }
 
 output "container_app_environment_id" {
   description = "Container Apps Environment ID"
-  value       = azurerm_container_app_environment.main.id
+  value       = var.container_image != "" ? azurerm_container_app_environment.main[0].id : null
 }
 
 output "vnet_id" {

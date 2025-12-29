@@ -1,11 +1,25 @@
+locals {
+  project_name = "${var.name_prefix}-${var.environment}"
+}
+
 # Storage Account (for frontend)
 resource "azurerm_storage_account" "frontend" {
-  name                     = var.storage_account_name
+  name                     = "${local.project_name}-storage"
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = var.storage_account_tier
   account_replication_type = var.storage_account_replication_type
   account_kind             = "StorageV2"
+
+  blob_properties {
+    cors_rule {
+      allowed_origins    = ["*"]
+      allowed_methods    = ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"]
+      allowed_headers    = ["*"]
+      exposed_headers    = ["*"]
+      max_age_in_seconds = 3600
+    }
+  }
 
   tags = var.tags
 }
@@ -19,28 +33,31 @@ resource "azurerm_storage_account_static_website" "frontend" {
 
 # Front Door
 resource "azurerm_frontdoor" "main" {
-  name                = "${var.project_name}-frontdoor"
+  name                = "${local.project_name}-frontdoor"
   resource_group_name = var.resource_group_name
 
   routing_rule {
     name               = "frontend-rule"
     accepted_protocols = var.front_door_accepted_protocols
     patterns_to_match  = var.front_door_frontend_patterns
-    frontend_endpoints = ["${var.project_name}-frontend"]
+    frontend_endpoints = ["${local.project_name}-frontend"]
     forwarding_configuration {
       forwarding_protocol = var.front_door_forwarding_protocol
       backend_pool_name   = "frontend-pool"
     }
   }
 
-  routing_rule {
-    name               = "backend-rule"
-    accepted_protocols = var.front_door_accepted_protocols
-    patterns_to_match  = var.front_door_backend_patterns
-    frontend_endpoints = ["${var.project_name}-frontend"]
-    forwarding_configuration {
-      forwarding_protocol = var.front_door_forwarding_protocol
-      backend_pool_name   = "backend-pool"
+  dynamic "routing_rule" {
+    for_each = var.backend_host_header != null && var.backend_address != null ? [1] : []
+    content {
+      name               = "backend-rule"
+      accepted_protocols = var.front_door_accepted_protocols
+      patterns_to_match  = var.front_door_backend_patterns
+      frontend_endpoints = ["${local.project_name}-frontend"]
+      forwarding_configuration {
+        forwarding_protocol = var.front_door_forwarding_protocol
+        backend_pool_name   = "backend-pool"
+      }
     }
   }
 
@@ -65,22 +82,25 @@ resource "azurerm_frontdoor" "main" {
     health_probe_name   = "healthProbeSettings1"
   }
 
-  backend_pool {
-    name = "backend-pool"
-    backend {
-      host_header = var.backend_host_header
-      address     = var.backend_address
-      http_port   = 80
-      https_port  = 443
-    }
+  dynamic "backend_pool" {
+    for_each = var.backend_host_header != null && var.backend_address != null ? [1] : []
+    content {
+      name = "backend-pool"
+      backend {
+        host_header = var.backend_host_header
+        address     = var.backend_address
+        http_port   = 80
+        https_port  = 443
+      }
 
-    load_balancing_name = "loadBalancingSettings1"
-    health_probe_name   = "healthProbeSettings1"
+      load_balancing_name = "loadBalancingSettings1"
+      health_probe_name   = "healthProbeSettings1"
+    }
   }
 
   frontend_endpoint {
-    name                         = "${var.project_name}-frontend"
-    host_name                    = "${var.project_name}-frontdoor.azurefd.net"
+    name                         = "${local.project_name}-frontend"
+    host_name                    = "${local.project_name}-frontdoor.azurefd.net"
     session_affinity_enabled     = var.front_door_session_affinity_enabled
     session_affinity_ttl_seconds = var.front_door_session_affinity_ttl_seconds
   }

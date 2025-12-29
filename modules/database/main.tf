@@ -1,6 +1,10 @@
+locals {
+  project_name = "${var.name_prefix}-${var.environment}"
+}
+
 # MySQL Flexible Server
 resource "azurerm_mysql_flexible_server" "main" {
-  name                   = "${var.environment}-${var.name_prefix}-mysql-server"
+  name                   = "${local.project_name}-mysql-server"
   resource_group_name    = var.resource_group_name
   location               = var.location
   administrator_login    = var.mysql_user
@@ -31,7 +35,7 @@ resource "azurerm_mysql_flexible_database" "main" {
 
 # PostgreSQL Flexible Server
 resource "azurerm_postgresql_flexible_server" "main" {
-  name                   = "${var.environment}-${var.name_prefix}-postgresql-server"
+  name                   = "${local.project_name}-postgresql-server"
   resource_group_name    = var.resource_group_name
   location               = var.location
   administrator_login    = var.postgresql_user
@@ -61,7 +65,7 @@ data "azurerm_client_config" "current" {}
 
 # Key Vault
 resource "azurerm_key_vault" "main" {
-  name                = "${replace(var.project_name, "-", "")}kv"
+  name                = "${local.project_name}-kv"
   location            = var.location
   resource_group_name = var.resource_group_name
   tenant_id           = data.azurerm_client_config.current.tenant_id

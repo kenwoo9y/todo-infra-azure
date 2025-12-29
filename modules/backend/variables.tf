@@ -1,8 +1,3 @@
-variable "project_name" {
-  description = "Project name"
-  type        = string
-}
-
 variable "resource_group_name" {
   description = "Resource group name"
   type        = string
@@ -18,9 +13,14 @@ variable "tags" {
   type        = map(string)
 }
 
-# Container Registry Configuration
-variable "acr_name" {
-  description = "Azure Container Registry name"
+variable "name_prefix" {
+  description = "Name prefix for resources"
+  type        = string
+  default     = "todo"
+}
+
+variable "environment" {
+  description = "Environment name"
   type        = string
 }
 
@@ -62,16 +62,10 @@ variable "container_app_revision_mode" {
   default     = "Single"
 }
 
-variable "container_app_image_name" {
-  description = "Container App image name"
+variable "container_image" {
+  description = "Container image URL (optional, leave empty to skip Container Apps service creation)"
   type        = string
-  default     = "backend"
-}
-
-variable "container_app_image_tag" {
-  description = "Container App image tag"
-  type        = string
-  default     = "latest"
+  default     = ""
 }
 
 variable "container_app_cpu" {
@@ -124,4 +118,10 @@ variable "mysql_database_url_secret_id" {
 variable "postgresql_database_url_secret_id" {
   description = "Key Vault secret ID for PostgreSQL database URL"
   type        = string
+}
+
+variable "frontend_url" {
+  description = "CORS allowed origins (comma-separated URLs)"
+  type        = string
+  default     = ""
 } 

@@ -1,23 +1,18 @@
-# Project Configuration
-project_name = "todoapp-dev"
+# Azure Region (Optional)
 location     = "japaneast"
-
-# Resource Group
-resource_group_name = "todo-app-dev-rg"
 
 # Database passwords (Required)
 mysql_password = "your-mysql-secure-password"
 postgresql_password = "your-postgresql-secure-password"
 
-# Storage Account
-storage_account_name = "todoappdevstorage"
-
-# Azure Container Registry
-acr_name = "todoappdevacr"
-
 # Environment settings (Optional)
 environment = "dev"
 name_prefix = "todo"
+
+# Container Image (Optional)
+# Leave empty for initial deployment to create infrastructure first (Container Registry, databases, etc.)
+# After pushing your Docker image to Container Registry, set this value and redeploy to create Container Apps service
+# Example: "<your-registry-name>.azurecr.io/todo-backend:latest"
 
 # Default database type (Optional)
 # Choose "mysql" or "postgresql"

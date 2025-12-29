@@ -138,7 +138,7 @@ Both database URLs are available as environment variables in Container Apps, all
 2. **Manual switching via Azure Portal**:
     - Go to Azure Portal → Container Apps → Your App → Revision Management
     - Edit the latest revision
-    - Change `DATABASE_TYPE` to "mysql" or "postgresql"
+    - Change `DB_TYPE` to "mysql" or "postgresql"
     - Change `MYSQL_DATABASE_URL` or `POSTGRESQL_DATABASE_URL` as needed
     - Deploy the new revision
 
@@ -155,7 +155,7 @@ Both database URLs are available as environment variables in Container Apps, all
     az containerapp update \
       --name dev-todoapp-dev-backend \
       --resource-group todo-app-dev-rg \
-      --set-env-vars DATABASE_TYPE=mysql
+      --set-env-vars DB_TYPE=mysql
     ```
 
 #### Method 2: Infrastructure Redeployment
@@ -190,7 +190,7 @@ After deployment, the following information is available:
 2. **Container Image Deployment**:
     - Build your application container image
     - Push to Azure Container Registry using the login server information from outputs
-    - Update the `container_app_image_name` and `container_app_image_tag` variables in `terraform.tfvars`
+    - Update the `container_image` and `container_app_image_tag` variables in `terraform.tfvars`
 
 3. **Application Deployment**:
     - Deploy your application to Container Apps

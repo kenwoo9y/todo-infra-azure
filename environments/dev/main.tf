@@ -2,17 +2,21 @@ provider "azurerm" {
   features {}
 }
 
+locals {
+  resource_group_name = "${var.name_prefix}-${var.environment}-rg"
+}
+
 # Resource Group
 resource "azurerm_resource_group" "main" {
-  name     = var.resource_group_name
+  name     = local.resource_group_name
   location = var.location
   tags     = var.tags
 }
 
 # User-Assigned Managed Identity for Container App
 resource "azurerm_user_assigned_identity" "container_app" {
-  name                = "${var.project_name}-backend-identity"
-  resource_group_name = var.resource_group_name
+  name                = "${var.name_prefix}-${var.environment}-backend-identity"
+  resource_group_name = local.resource_group_name
   location            = var.location
   tags                = var.tags
 }
@@ -21,9 +25,8 @@ resource "azurerm_user_assigned_identity" "container_app" {
 module "database" {
   source = "../../modules/database"
 
-  project_name                                = var.project_name
+  resource_group_name                         = local.resource_group_name
   location                                    = var.location
-  resource_group_name                         = var.resource_group_name
   tags                                        = var.tags
   environment                                 = var.environment
   name_prefix                                 = var.name_prefix
@@ -40,13 +43,14 @@ module "database" {
 module "backend" {
   source = "../../modules/backend"
 
-  project_name        = var.project_name
-  resource_group_name = var.resource_group_name
   location            = var.location
+  resource_group_name = local.resource_group_name
   tags                = var.tags
+  name_prefix         = var.name_prefix
+  environment         = var.environment
 
-  # Container Registry Configuration
-  acr_name = var.acr_name
+  # Container Image
+  container_image = var.container_image
 
   # Log Analytics Workspace
   log_analytics_workspace_name              = var.log_analytics_workspace_name
@@ -62,21 +66,22 @@ module "backend" {
   # Key Vault Secret IDs
   mysql_database_url_secret_id      = module.database.mysql_database_url_secret_id
   postgresql_database_url_secret_id = module.database.postgresql_database_url_secret_id
+
+  # CORS Configuration
+  frontend_url = module.frontend.frontend_url
 }
 
 # Frontend Module
 module "frontend" {
   source = "../../modules/frontend"
 
-  project_name        = var.project_name
-  resource_group_name = var.resource_group_name
+  resource_group_name = local.resource_group_name
   location            = var.location
   tags                = var.tags
-
-  # Storage Account Configuration
-  storage_account_name = var.storage_account_name
+  name_prefix         = var.name_prefix
+  environment         = var.environment
 
   # Backend Configuration
-  backend_host_header = module.backend.container_app_url
-  backend_address     = module.backend.container_app_url
+  backend_host_header = var.container_image != "" ? module.backend.container_app_url : null
+  backend_address     = var.container_image != "" ? module.backend.container_app_url : null
 } 

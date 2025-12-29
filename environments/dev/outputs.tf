@@ -20,7 +20,7 @@ output "container_registry_login_server" {
 
 output "container_app_url" {
   description = "Container App URL"
-  value       = module.backend.container_app_url
+  value       = var.container_image != "" ? module.backend.container_app_url : null
 }
 
 output "front_door_url" {

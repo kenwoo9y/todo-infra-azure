@@ -1,8 +1,3 @@
-variable "project_name" {
-  description = "Project name"
-  type        = string
-}
-
 variable "resource_group_name" {
   description = "Resource group name"
   type        = string
@@ -18,12 +13,18 @@ variable "tags" {
   type        = map(string)
 }
 
-# Storage Account Configuration
-variable "storage_account_name" {
-  description = "Storage account name"
+variable "name_prefix" {
+  description = "Name prefix for resources"
+  type        = string
+  default     = "todo"
+}
+
+variable "environment" {
+  description = "Environment name"
   type        = string
 }
 
+# Storage Account Configuration
 variable "storage_account_tier" {
   description = "Storage account tier"
   type        = string
@@ -87,11 +88,13 @@ variable "front_door_session_affinity_ttl_seconds" {
 
 # Backend Configuration
 variable "backend_host_header" {
-  description = "Backend host header"
+  description = "Backend host header (optional, if null backend pool will not be created)"
   type        = string
+  default     = null
 }
 
 variable "backend_address" {
-  description = "Backend address"
+  description = "Backend address (optional, if null backend pool will not be created)"
   type        = string
+  default     = null
 } 

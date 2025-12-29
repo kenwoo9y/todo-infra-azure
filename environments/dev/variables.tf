@@ -1,31 +1,17 @@
-variable "resource_group_name" {
-  description = "Name of the resource group"
-  type        = string
-  default     = "todo-app-dev-rg"
-}
-
 variable "location" {
   description = "Azure region"
   type        = string
-  default     = "japaneast"
 }
 
-variable "project_name" {
-  description = "Project name (used as prefix for resource names)"
+variable "environment" {
+  description = "Environment name"
   type        = string
-  default     = "todoapp-dev"
 }
 
-variable "storage_account_name" {
-  description = "Storage account name"
+variable "name_prefix" {
+  description = "Name prefix for resources"
   type        = string
-  default     = "todoappdevstorage"
-}
-
-variable "acr_name" {
-  description = "Azure Container Registry name"
-  type        = string
-  default     = "todoappdevacr"
+  default     = "todo"
 }
 
 variable "log_analytics_workspace_name" {
@@ -44,18 +30,6 @@ variable "log_analytics_workspace_retention_in_days" {
   description = "Log retention days for Log Analytics Workspace"
   type        = number
   default     = 30
-}
-
-variable "environment" {
-  description = "Environment name"
-  type        = string
-  default     = "dev"
-}
-
-variable "name_prefix" {
-  description = "Name prefix for resources"
-  type        = string
-  default     = "todo"
 }
 
 variable "mysql_database_name" {
@@ -98,6 +72,12 @@ variable "default_database_type" {
   description = "Default database type (mysql or postgresql)"
   type        = string
   default     = "mysql"
+}
+
+variable "container_image" {
+  description = "Full container image path (e.g., <registry-name>.azurecr.io/backend:latest). If null or empty, Container Apps will not be deployed."
+  type        = string
+  default     = ""
 }
 
 variable "tags" {

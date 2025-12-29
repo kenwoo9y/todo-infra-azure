@@ -2,9 +2,13 @@ provider "azurerm" {
   features {}
 }
 
+locals {
+  resource_group_name = "${var.name_prefix}-${var.environment}-rg"
+}
+
 # Resource Group
 resource "azurerm_resource_group" "main" {
-  name     = "${var.name_prefix}-${var.environment}-rg"
+  name     = local.resource_group_name
   location = var.location
   tags     = var.tags
 }
@@ -12,7 +16,7 @@ resource "azurerm_resource_group" "main" {
 # User-Assigned Managed Identity for Container App
 resource "azurerm_user_assigned_identity" "container_app" {
   name                = "${var.name_prefix}-${var.environment}-backend-identity"
-  resource_group_name = "${var.name_prefix}-${var.environment}-rg"
+  resource_group_name = local.resource_group_name
   location            = var.location
   tags                = var.tags
 }
@@ -21,6 +25,7 @@ resource "azurerm_user_assigned_identity" "container_app" {
 module "database" {
   source = "../../modules/database"
 
+  resource_group_name                         = local.resource_group_name
   location                                    = var.location
   tags                                        = var.tags
   environment                                 = var.environment
@@ -39,7 +44,7 @@ module "backend" {
   source = "../../modules/backend"
 
   location            = var.location
-  resource_group_name = "${var.name_prefix}-${var.environment}-rg"
+  resource_group_name = local.resource_group_name
   tags                = var.tags
   name_prefix         = var.name_prefix
   environment         = var.environment
@@ -64,7 +69,7 @@ module "backend" {
 module "frontend" {
   source = "../../modules/frontend"
 
-  resource_group_name = "${var.name_prefix}-${var.environment}-rg"
+  resource_group_name = local.resource_group_name
   location            = var.location
   tags                = var.tags
   name_prefix         = var.name_prefix

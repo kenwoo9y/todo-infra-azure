@@ -11,6 +11,16 @@ resource "azurerm_storage_account" "frontend" {
   account_replication_type = var.storage_account_replication_type
   account_kind             = "StorageV2"
 
+  blob_properties {
+    cors_rule {
+      allowed_origins    = ["*"]
+      allowed_methods    = ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"]
+      allowed_headers    = ["*"]
+      exposed_headers    = ["*"]
+      max_age_in_seconds = 3600
+    }
+  }
+
   tags = var.tags
 }
 

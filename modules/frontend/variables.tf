@@ -25,11 +25,6 @@ variable "environment" {
 }
 
 # Storage Account Configuration
-variable "storage_account_name" {
-  description = "Storage account name"
-  type        = string
-}
-
 variable "storage_account_tier" {
   description = "Storage account tier"
   type        = string

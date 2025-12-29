@@ -78,9 +78,6 @@ module "frontend" {
   name_prefix         = var.name_prefix
   environment         = var.environment
 
-  # Storage Account Configuration
-  storage_account_name = "${var.name_prefix}-${var.environment}-storage"
-
   # Backend Configuration
   backend_host_header = var.container_image != "" ? module.backend.container_app_url : null
   backend_address     = var.container_image != "" ? module.backend.container_app_url : null

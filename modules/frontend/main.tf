@@ -4,7 +4,7 @@ locals {
 
 # Storage Account (for frontend)
 resource "azurerm_storage_account" "frontend" {
-  name                     = var.storage_account_name
+  name                     = "${local.project_name}-storage"
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = var.storage_account_tier

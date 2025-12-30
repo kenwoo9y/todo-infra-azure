@@ -40,7 +40,8 @@ show_help() {
     echo ""
     echo "Notes:"
     echo "  - Create .env file from .env.example and configure it"
-    echo "  - Or set environment variables manually: ARM_ACCESS_KEY, TF_VAR_* etc."
+    echo "  - Set Terraform Cloud environment variables: TF_ORG_NAME, TF_WORKSPACE_NAME_PREFIX"
+    echo "  - Or set environment variables manually: TF_VAR_* etc."
 }
 
 # Argument check
@@ -89,68 +90,10 @@ fi
 echo -e "${BLUE}Environment: $ENVIRONMENT${NC}"
 echo -e "${YELLOW}Starting deployment...${NC}"
 
-# Setup Terraform backend if not exists
-setup_backend() {
-    echo -e "${BLUE}Checking Terraform backend setup...${NC}"
-    
-    RESOURCE_GROUP_NAME="terraform-state-rg"
-    STORAGE_ACCOUNT_NAME="tfstatetodoapp"
-    CONTAINER_NAME="tfstate"
-    LOCATION="japaneast"
-    
-    # Check if resource group exists
-    if ! az group show --name $RESOURCE_GROUP_NAME >/dev/null 2>&1; then
-        echo -e "${YELLOW}Creating resource group...${NC}"
-        az group create \
-          --name $RESOURCE_GROUP_NAME \
-          --location $LOCATION
-    fi
-    
-    # Check if storage account exists
-    if ! az storage account show --name $STORAGE_ACCOUNT_NAME --resource-group $RESOURCE_GROUP_NAME >/dev/null 2>&1; then
-        echo -e "${YELLOW}Creating storage account...${NC}"
-        az storage account create \
-          --resource-group $RESOURCE_GROUP_NAME \
-          --name $STORAGE_ACCOUNT_NAME \
-          --sku Standard_LRS \
-          --encryption-services blob \
-          --location $LOCATION
-    fi
-    
-    # Check if container exists
-    if ! az storage container show --name $CONTAINER_NAME --account-name $STORAGE_ACCOUNT_NAME >/dev/null 2>&1; then
-        echo -e "${YELLOW}Creating blob container...${NC}"
-        az storage container create \
-          --name $CONTAINER_NAME \
-          --account-name $STORAGE_ACCOUNT_NAME
-    fi
-    
-    # Get access key (only if ARM_ACCESS_KEY is not already set)
-    if [ -z "$ARM_ACCESS_KEY" ]; then
-        ACCOUNT_KEY=$(az storage account keys list \
-          --resource-group $RESOURCE_GROUP_NAME \
-          --account-name $STORAGE_ACCOUNT_NAME \
-          --query '[0].value' \
-          --output tsv)
-        
-        # Set environment variable
-        export ARM_ACCESS_KEY=$ACCOUNT_KEY
-        
-        echo -e "${GREEN}Terraform backend setup completed!${NC}"
-        echo -e "${BLUE}Access key has been set as ARM_ACCESS_KEY environment variable${NC}"
-    else
-        echo -e "${GREEN}Terraform backend setup completed!${NC}"
-        echo -e "${BLUE}Using existing ARM_ACCESS_KEY environment variable${NC}"
-    fi
-}
-
-# Check and setup backend
-setup_backend
-
 # Change to environment directory
 cd "$ENV_DIR"
 
-# Setup backend configuration for Terraform Cloud if environment variables are set
+# Setup backend configuration for Terraform Cloud (required)
 if [ -n "$TF_ORG_NAME" ] && [ -n "$TF_WORKSPACE_NAME_PREFIX" ]; then
   WORKSPACE_NAME="${TF_WORKSPACE_NAME_PREFIX}-${ENVIRONMENT}"
   BACKEND_CONFIG_FILE="backend-config.tfbackend"
@@ -172,6 +115,16 @@ EOF
     echo -e "${YELLOW}State upload may fail without authentication.${NC}"
     echo ""
   fi
+else
+  echo -e "${RED}Error: Terraform Cloud configuration is required.${NC}"
+  echo -e "${RED}Please set the following environment variables:${NC}"
+  echo -e "${RED}  - TF_ORG_NAME: Terraform Cloud organization name${NC}"
+  echo -e "${RED}  - TF_WORKSPACE_NAME_PREFIX: Workspace name prefix${NC}"
+  echo ""
+  echo -e "${BLUE}Example:${NC}"
+  echo -e "${BLUE}  export TF_ORG_NAME=\"your-org\"${NC}"
+  echo -e "${BLUE}  export TF_WORKSPACE_NAME_PREFIX=\"todo-infra\"${NC}"
+  exit 1
 fi
 
 # Terraform init

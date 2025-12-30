@@ -42,7 +42,8 @@ show_help() {
     echo "  - This operation cannot be undone"
     echo "  - All data will be lost"
     echo "  - Create .env file from .env.example and configure it"
-    echo "  - Or set environment variables manually: ARM_ACCESS_KEY, TF_VAR_* etc."
+    echo "  - Set Terraform Cloud environment variables: TF_ORG_NAME, TF_WORKSPACE_NAME_PREFIX"
+    echo "  - Or set environment variables manually: TF_VAR_* etc."
 }
 
 # Argument check
@@ -93,7 +94,7 @@ echo -e "${YELLOW}Starting environment destruction...${NC}"
 # Change to environment directory
 cd "$ENV_DIR"
 
-# Setup backend configuration for Terraform Cloud if environment variables are set
+# Setup backend configuration for Terraform Cloud (required)
 if [ -n "$TF_ORG_NAME" ] && [ -n "$TF_WORKSPACE_NAME_PREFIX" ]; then
   WORKSPACE_NAME="${TF_WORKSPACE_NAME_PREFIX}-${ENVIRONMENT}"
   BACKEND_CONFIG_FILE="backend-config.tfbackend"
@@ -105,6 +106,16 @@ workspaces {
 EOF
   export TF_CLI_ARGS_init="-backend-config=$BACKEND_CONFIG_FILE"
   echo -e "${BLUE}Using Terraform Cloud backend: ${TF_ORG_NAME}/${WORKSPACE_NAME}${NC}"
+else
+  echo -e "${RED}Error: Terraform Cloud configuration is required.${NC}"
+  echo -e "${RED}Please set the following environment variables:${NC}"
+  echo -e "${RED}  - TF_ORG_NAME: Terraform Cloud organization name${NC}"
+  echo -e "${RED}  - TF_WORKSPACE_NAME_PREFIX: Workspace name prefix${NC}"
+  echo ""
+  echo -e "${BLUE}Example:${NC}"
+  echo -e "${BLUE}  export TF_ORG_NAME=\"your-org\"${NC}"
+  echo -e "${BLUE}  export TF_WORKSPACE_NAME_PREFIX=\"todo-infra\"${NC}"
+  exit 1
 fi
 
 # Terraform init

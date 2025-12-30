@@ -9,7 +9,7 @@ resource "azurerm_mysql_flexible_server" "main" {
   location               = var.location
   administrator_login    = var.mysql_user
   administrator_password = var.mysql_password
-  version                = "8.0"
+  version                = "8.0.21"
 
   sku_name = var.mysql_sku_name
 
@@ -20,8 +20,6 @@ resource "azurerm_mysql_flexible_server" "main" {
 
   backup_retention_days        = var.mysql_backup_retention_days
   geo_redundant_backup_enabled = var.mysql_geo_redundant_backup_enabled
-
-  tags = var.tags
 }
 
 # MySQL Flexible Database
@@ -40,7 +38,7 @@ resource "azurerm_postgresql_flexible_server" "main" {
   location               = var.location
   administrator_login    = var.postgresql_user
   administrator_password = var.postgresql_password
-  version                = "16.0"
+  version                = "16"
 
   sku_name   = var.postgresql_sku_name
   storage_mb = var.postgresql_storage_mb
@@ -49,7 +47,12 @@ resource "azurerm_postgresql_flexible_server" "main" {
   geo_redundant_backup_enabled = var.postgresql_geo_redundant_backup_enabled
   auto_grow_enabled            = var.postgresql_auto_grow_enabled
 
-  tags = var.tags
+  # Do not set zone explicitly to avoid conflicts with high_availability
+  # zone is managed automatically by Azure
+  # Ignore zone changes if high_availability is not configured
+  lifecycle {
+    ignore_changes = [zone]
+  }
 }
 
 # PostgreSQL Flexible Database
@@ -76,8 +79,24 @@ resource "azurerm_key_vault" "main" {
   enabled_for_disk_encryption     = false
 
   purge_protection_enabled = var.key_vault_purge_protection_enabled
+}
 
-  tags = var.tags
+# Key Vault Access Policy for Terraform user/service principal
+# This allows Terraform to create and manage secrets in Key Vault
+resource "azurerm_key_vault_access_policy" "terraform" {
+  key_vault_id = azurerm_key_vault.main.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  secret_permissions = [
+    "Get",
+    "List",
+    "Set",
+    "Delete",
+    "Recover",
+    "Backup",
+    "Restore"
+  ]
 }
 
 # Key Vault Access Policy for Managed Identity
@@ -106,6 +125,7 @@ resource "azurerm_key_vault_secret" "mysql_database_url" {
   key_vault_id = azurerm_key_vault.main.id
 
   depends_on = [
+    azurerm_key_vault_access_policy.terraform,
     azurerm_key_vault_access_policy.managed_identity,
     azurerm_role_assignment.key_vault_secrets_user,
     azurerm_mysql_flexible_server.main,
@@ -119,6 +139,7 @@ resource "azurerm_key_vault_secret" "postgresql_database_url" {
   key_vault_id = azurerm_key_vault.main.id
 
   depends_on = [
+    azurerm_key_vault_access_policy.terraform,
     azurerm_key_vault_access_policy.managed_identity,
     azurerm_role_assignment.key_vault_secrets_user,
     azurerm_postgresql_flexible_server.main,

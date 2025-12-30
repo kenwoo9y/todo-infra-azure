@@ -1,10 +1,21 @@
+# Random string for unique storage account name
+resource "random_string" "storage_suffix" {
+  length  = 8
+  special = false
+  upper   = false
+  numeric = true
+}
+
 locals {
   project_name = "${var.name_prefix}-${var.environment}"
+  # Storage account name must be lowercase alphanumeric only, 3-24 chars
+  # Add random suffix to ensure uniqueness globally
+  storage_account_name = lower(substr("${replace(local.project_name, "-", "")}${random_string.storage_suffix.result}", 0, 24))
 }
 
 # Storage Account (for frontend)
 resource "azurerm_storage_account" "frontend" {
-  name                     = "${local.project_name}-storage"
+  name                     = local.storage_account_name
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = var.storage_account_tier
@@ -20,8 +31,6 @@ resource "azurerm_storage_account" "frontend" {
       max_age_in_seconds = 3600
     }
   }
-
-  tags = var.tags
 }
 
 # Static Website Configuration
@@ -31,79 +40,7 @@ resource "azurerm_storage_account_static_website" "frontend" {
   error_404_document = var.static_website_error_document
 }
 
-# Front Door
-resource "azurerm_frontdoor" "main" {
-  name                = "${local.project_name}-frontdoor"
-  resource_group_name = var.resource_group_name
-
-  routing_rule {
-    name               = "frontend-rule"
-    accepted_protocols = var.front_door_accepted_protocols
-    patterns_to_match  = var.front_door_frontend_patterns
-    frontend_endpoints = ["${local.project_name}-frontend"]
-    forwarding_configuration {
-      forwarding_protocol = var.front_door_forwarding_protocol
-      backend_pool_name   = "frontend-pool"
-    }
-  }
-
-  dynamic "routing_rule" {
-    for_each = var.backend_host_header != null && var.backend_address != null ? [1] : []
-    content {
-      name               = "backend-rule"
-      accepted_protocols = var.front_door_accepted_protocols
-      patterns_to_match  = var.front_door_backend_patterns
-      frontend_endpoints = ["${local.project_name}-frontend"]
-      forwarding_configuration {
-        forwarding_protocol = var.front_door_forwarding_protocol
-        backend_pool_name   = "backend-pool"
-      }
-    }
-  }
-
-  backend_pool_load_balancing {
-    name = "loadBalancingSettings1"
-  }
-
-  backend_pool_health_probe {
-    name = "healthProbeSettings1"
-  }
-
-  backend_pool {
-    name = "frontend-pool"
-    backend {
-      host_header = azurerm_storage_account_static_website.frontend.primary_web_host
-      address     = azurerm_storage_account_static_website.frontend.primary_web_host
-      http_port   = 80
-      https_port  = 443
-    }
-
-    load_balancing_name = "loadBalancingSettings1"
-    health_probe_name   = "healthProbeSettings1"
-  }
-
-  dynamic "backend_pool" {
-    for_each = var.backend_host_header != null && var.backend_address != null ? [1] : []
-    content {
-      name = "backend-pool"
-      backend {
-        host_header = var.backend_host_header
-        address     = var.backend_address
-        http_port   = 80
-        https_port  = 443
-      }
-
-      load_balancing_name = "loadBalancingSettings1"
-      health_probe_name   = "healthProbeSettings1"
-    }
-  }
-
-  frontend_endpoint {
-    name                         = "${local.project_name}-frontend"
-    host_name                    = "${local.project_name}-frontdoor.azurefd.net"
-    session_affinity_enabled     = var.front_door_session_affinity_enabled
-    session_affinity_ttl_seconds = var.front_door_session_affinity_ttl_seconds
-  }
-
-  tags = var.tags
-} 
+# Note: Azure Front Door (Classic) is deprecated as of April 1, 2025
+# Front Door functionality is disabled by default
+# Use Storage Account static website endpoint directly for development environments
+# For production, consider migrating to Azure Front Door Standard/Premium 

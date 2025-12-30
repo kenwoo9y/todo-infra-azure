@@ -8,11 +8,6 @@ variable "location" {
   type        = string
 }
 
-variable "tags" {
-  description = "Tags to apply to resources"
-  type        = map(string)
-}
-
 variable "name_prefix" {
   description = "Name prefix for resources"
   type        = string
@@ -52,7 +47,7 @@ variable "log_analytics_workspace_sku" {
 variable "log_analytics_workspace_retention_in_days" {
   description = "Log retention days for Log Analytics Workspace"
   type        = number
-  default     = 30
+  default     = 7
 }
 
 # Container App Configuration
@@ -77,7 +72,7 @@ variable "container_app_cpu" {
 variable "container_app_memory" {
   description = "Container App memory allocation"
   type        = string
-  default     = "0.5Gi"
+  default     = "0.25Gi"
 }
 
 # Database Configuration

@@ -5,20 +5,20 @@ output "storage_account_name" {
 
 output "storage_account_primary_web_endpoint" {
   description = "Storage account primary web endpoint"
-  value       = azurerm_storage_account_static_website.frontend.primary_web_host
+  value       = azurerm_storage_account.frontend.primary_web_endpoint
 }
 
 output "frontend_url" {
   description = "Frontend URL (Storage Account Static Website URL)"
-  value       = "https://${azurerm_storage_account_static_website.frontend.primary_web_host}"
+  value       = azurerm_storage_account.frontend.primary_web_endpoint
 }
 
 output "front_door_url" {
-  description = "Azure Front Door URL"
-  value       = azurerm_frontdoor.main.frontend_endpoint[0].host_name
+  description = "Azure Front Door URL (deprecated - using Storage Account endpoint directly)"
+  value       = null
 }
 
 output "front_door_id" {
-  description = "Azure Front Door ID"
-  value       = azurerm_frontdoor.main.id
+  description = "Azure Front Door ID (deprecated)"
+  value       = null
 } 

@@ -1,3 +1,8 @@
+variable "subscription_id" {
+  description = "Azure subscription ID"
+  type        = string
+}
+
 variable "location" {
   description = "Azure region"
   type        = string
@@ -79,13 +84,3 @@ variable "container_image" {
   type        = string
   default     = ""
 }
-
-variable "tags" {
-  description = "Tags to apply to resources"
-  type        = map(string)
-  default = {
-    Environment = "dev"
-    Project     = "todo-app"
-    ManagedBy   = "terraform"
-  }
-} 

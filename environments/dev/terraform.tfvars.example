@@ -1,3 +1,6 @@
+# Azure Subscription ID (Required)
+# subscription_id = "your-subscription-id"
+
 # Azure Region (Optional)
 location     = "japaneast"
 
@@ -23,12 +26,3 @@ mysql_database_name = "todo_mysql_db"
 postgresql_database_name = "todo_postgresql_db"
 mysql_user = "todo_mysql_user"
 postgresql_user = "todo_postgresql_user"
-
-# Tags
-tags = {
-  Environment = "dev"
-  Project     = "todo-app"
-  ManagedBy   = "terraform"
-  Owner       = "your-team"
-  CostCenter  = "development"
-} 

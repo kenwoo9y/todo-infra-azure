@@ -1,5 +1,6 @@
 provider "azurerm" {
   features {}
+  subscription_id = var.subscription_id
 }
 
 locals {
@@ -10,24 +11,23 @@ locals {
 resource "azurerm_resource_group" "main" {
   name     = local.resource_group_name
   location = var.location
-  tags     = var.tags
 }
 
 # User-Assigned Managed Identity for Container App
 resource "azurerm_user_assigned_identity" "container_app" {
   name                = "${var.name_prefix}-${var.environment}-backend-identity"
-  resource_group_name = local.resource_group_name
+  resource_group_name = azurerm_resource_group.main.name
   location            = var.location
-  tags                = var.tags
+
+  depends_on = [azurerm_resource_group.main]
 }
 
 # Database Module
 module "database" {
   source = "../../modules/database"
 
-  resource_group_name                         = local.resource_group_name
+  resource_group_name                         = azurerm_resource_group.main.name
   location                                    = var.location
-  tags                                        = var.tags
   environment                                 = var.environment
   name_prefix                                 = var.name_prefix
   mysql_database_name                         = var.mysql_database_name
@@ -44,8 +44,7 @@ module "backend" {
   source = "../../modules/backend"
 
   location            = var.location
-  resource_group_name = local.resource_group_name
-  tags                = var.tags
+  resource_group_name = azurerm_resource_group.main.name
   name_prefix         = var.name_prefix
   environment         = var.environment
 
@@ -75,13 +74,8 @@ module "backend" {
 module "frontend" {
   source = "../../modules/frontend"
 
-  resource_group_name = local.resource_group_name
+  resource_group_name = azurerm_resource_group.main.name
   location            = var.location
-  tags                = var.tags
   name_prefix         = var.name_prefix
   environment         = var.environment
-
-  # Backend Configuration
-  backend_host_header = var.container_image != "" ? module.backend.container_app_url : null
-  backend_address     = var.container_image != "" ? module.backend.container_app_url : null
 } 

@@ -20,8 +20,6 @@ resource "azurerm_mysql_flexible_server" "main" {
 
   backup_retention_days        = var.mysql_backup_retention_days
   geo_redundant_backup_enabled = var.mysql_geo_redundant_backup_enabled
-
-  tags = var.tags
 }
 
 # MySQL Flexible Database
@@ -48,8 +46,6 @@ resource "azurerm_postgresql_flexible_server" "main" {
   backup_retention_days        = var.postgresql_backup_retention_days
   geo_redundant_backup_enabled = var.postgresql_geo_redundant_backup_enabled
   auto_grow_enabled            = var.postgresql_auto_grow_enabled
-
-  tags = var.tags
 }
 
 # PostgreSQL Flexible Database
@@ -76,8 +72,6 @@ resource "azurerm_key_vault" "main" {
   enabled_for_disk_encryption     = false
 
   purge_protection_enabled = var.key_vault_purge_protection_enabled
-
-  tags = var.tags
 }
 
 # Key Vault Access Policy for Managed Identity

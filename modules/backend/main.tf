@@ -10,7 +10,6 @@ resource "azurerm_log_analytics_workspace" "main" {
   location            = var.location
   sku                 = var.log_analytics_workspace_sku
   retention_in_days   = var.log_analytics_workspace_retention_in_days
-  tags                = var.tags
 }
 
 # Container Registry
@@ -20,7 +19,6 @@ resource "azurerm_container_registry" "acr" {
   resource_group_name = var.resource_group_name
   sku                 = var.acr_sku
   admin_enabled       = var.acr_admin_enabled
-  tags                = var.tags
 }
 
 # Container Apps Environment
@@ -30,7 +28,6 @@ resource "azurerm_container_app_environment" "main" {
   resource_group_name        = var.resource_group_name
   location                   = var.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
-  tags                       = var.tags
 }
 
 # Role assignment for Container Registry pull access
@@ -114,6 +111,4 @@ resource "azurerm_container_app" "backend" {
       latest_revision = true
     }
   }
-
-  tags = var.tags
 } 

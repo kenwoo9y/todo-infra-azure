@@ -84,13 +84,3 @@ variable "container_image" {
   type        = string
   default     = ""
 }
-
-variable "tags" {
-  description = "Tags to apply to resources"
-  type        = map(string)
-  default = {
-    Environment = "dev"
-    Project     = "todo-app"
-    ManagedBy   = "terraform"
-  }
-} 

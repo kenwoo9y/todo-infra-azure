@@ -103,8 +103,7 @@ setup_backend() {
         echo -e "${YELLOW}Creating resource group...${NC}"
         az group create \
           --name $RESOURCE_GROUP_NAME \
-          --location $LOCATION \
-          --tags Environment=infrastructure Project=todo-app ManagedBy=terraform
+          --location $LOCATION
     fi
     
     # Check if storage account exists
@@ -115,8 +114,7 @@ setup_backend() {
           --name $STORAGE_ACCOUNT_NAME \
           --sku Standard_LRS \
           --encryption-services blob \
-          --location $LOCATION \
-          --tags Environment=infrastructure Project=todo-app ManagedBy=terraform
+          --location $LOCATION
     fi
     
     # Check if container exists

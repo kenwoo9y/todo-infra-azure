@@ -20,8 +20,6 @@ resource "azurerm_storage_account" "frontend" {
       max_age_in_seconds = 3600
     }
   }
-
-  tags = var.tags
 }
 
 # Static Website Configuration
@@ -104,6 +102,4 @@ resource "azurerm_frontdoor" "main" {
     session_affinity_enabled     = var.front_door_session_affinity_enabled
     session_affinity_ttl_seconds = var.front_door_session_affinity_ttl_seconds
   }
-
-  tags = var.tags
 } 

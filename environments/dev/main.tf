@@ -11,7 +11,6 @@ locals {
 resource "azurerm_resource_group" "main" {
   name     = local.resource_group_name
   location = var.location
-  tags     = var.tags
 }
 
 # User-Assigned Managed Identity for Container App
@@ -19,7 +18,6 @@ resource "azurerm_user_assigned_identity" "container_app" {
   name                = "${var.name_prefix}-${var.environment}-backend-identity"
   resource_group_name = local.resource_group_name
   location            = var.location
-  tags                = var.tags
 }
 
 # Database Module
@@ -28,7 +26,6 @@ module "database" {
 
   resource_group_name                         = local.resource_group_name
   location                                    = var.location
-  tags                                        = var.tags
   environment                                 = var.environment
   name_prefix                                 = var.name_prefix
   mysql_database_name                         = var.mysql_database_name
@@ -46,7 +43,6 @@ module "backend" {
 
   location            = var.location
   resource_group_name = local.resource_group_name
-  tags                = var.tags
   name_prefix         = var.name_prefix
   environment         = var.environment
 
@@ -78,7 +74,6 @@ module "frontend" {
 
   resource_group_name = local.resource_group_name
   location            = var.location
-  tags                = var.tags
   name_prefix         = var.name_prefix
   environment         = var.environment
 

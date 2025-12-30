@@ -78,8 +78,4 @@ module "frontend" {
   location            = var.location
   name_prefix         = var.name_prefix
   environment         = var.environment
-
-  # Backend Configuration
-  backend_host_header = var.container_image != "" ? module.backend.container_app_url : null
-  backend_address     = var.container_image != "" ? module.backend.container_app_url : null
 } 

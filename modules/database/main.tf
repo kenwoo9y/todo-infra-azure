@@ -81,6 +81,24 @@ resource "azurerm_key_vault" "main" {
   purge_protection_enabled = var.key_vault_purge_protection_enabled
 }
 
+# Key Vault Access Policy for Terraform user/service principal
+# This allows Terraform to create and manage secrets in Key Vault
+resource "azurerm_key_vault_access_policy" "terraform" {
+  key_vault_id = azurerm_key_vault.main.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  secret_permissions = [
+    "Get",
+    "List",
+    "Set",
+    "Delete",
+    "Recover",
+    "Backup",
+    "Restore"
+  ]
+}
+
 # Key Vault Access Policy for Managed Identity
 resource "azurerm_key_vault_access_policy" "managed_identity" {
   key_vault_id = azurerm_key_vault.main.id
@@ -107,6 +125,7 @@ resource "azurerm_key_vault_secret" "mysql_database_url" {
   key_vault_id = azurerm_key_vault.main.id
 
   depends_on = [
+    azurerm_key_vault_access_policy.terraform,
     azurerm_key_vault_access_policy.managed_identity,
     azurerm_role_assignment.key_vault_secrets_user,
     azurerm_mysql_flexible_server.main,
@@ -120,6 +139,7 @@ resource "azurerm_key_vault_secret" "postgresql_database_url" {
   key_vault_id = azurerm_key_vault.main.id
 
   depends_on = [
+    azurerm_key_vault_access_policy.terraform,
     azurerm_key_vault_access_policy.managed_identity,
     azurerm_role_assignment.key_vault_secrets_user,
     azurerm_postgresql_flexible_server.main,

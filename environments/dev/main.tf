@@ -16,15 +16,17 @@ resource "azurerm_resource_group" "main" {
 # User-Assigned Managed Identity for Container App
 resource "azurerm_user_assigned_identity" "container_app" {
   name                = "${var.name_prefix}-${var.environment}-backend-identity"
-  resource_group_name = local.resource_group_name
+  resource_group_name = azurerm_resource_group.main.name
   location            = var.location
+
+  depends_on = [azurerm_resource_group.main]
 }
 
 # Database Module
 module "database" {
   source = "../../modules/database"
 
-  resource_group_name                         = local.resource_group_name
+  resource_group_name                         = azurerm_resource_group.main.name
   location                                    = var.location
   environment                                 = var.environment
   name_prefix                                 = var.name_prefix
@@ -42,7 +44,7 @@ module "backend" {
   source = "../../modules/backend"
 
   location            = var.location
-  resource_group_name = local.resource_group_name
+  resource_group_name = azurerm_resource_group.main.name
   name_prefix         = var.name_prefix
   environment         = var.environment
 
@@ -72,7 +74,7 @@ module "backend" {
 module "frontend" {
   source = "../../modules/frontend"
 
-  resource_group_name = local.resource_group_name
+  resource_group_name = azurerm_resource_group.main.name
   location            = var.location
   name_prefix         = var.name_prefix
   environment         = var.environment

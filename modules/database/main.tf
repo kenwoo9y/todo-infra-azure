@@ -9,7 +9,7 @@ resource "azurerm_mysql_flexible_server" "main" {
   location               = var.location
   administrator_login    = var.mysql_user
   administrator_password = var.mysql_password
-  version                = "8.0"
+  version                = "8.0.21"
 
   sku_name = var.mysql_sku_name
 
@@ -38,7 +38,7 @@ resource "azurerm_postgresql_flexible_server" "main" {
   location               = var.location
   administrator_login    = var.postgresql_user
   administrator_password = var.postgresql_password
-  version                = "16.0"
+  version                = "16"
 
   sku_name   = var.postgresql_sku_name
   storage_mb = var.postgresql_storage_mb
@@ -46,6 +46,13 @@ resource "azurerm_postgresql_flexible_server" "main" {
   backup_retention_days        = var.postgresql_backup_retention_days
   geo_redundant_backup_enabled = var.postgresql_geo_redundant_backup_enabled
   auto_grow_enabled            = var.postgresql_auto_grow_enabled
+
+  # Do not set zone explicitly to avoid conflicts with high_availability
+  # zone is managed automatically by Azure
+  # Ignore zone changes if high_availability is not configured
+  lifecycle {
+    ignore_changes = [zone]
+  }
 }
 
 # PostgreSQL Flexible Database

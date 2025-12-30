@@ -46,9 +46,9 @@ variable "mysql_password" {
 }
 
 variable "mysql_sku_name" {
-  description = "MySQL SKU name"
+  description = "MySQL SKU name (e.g., B_Standard_B1ms for Burstable tier - cheapest option)"
   type        = string
-  default     = "B_Gen5_1"
+  default     = "B_Standard_B1ms"
 }
 
 variable "mysql_storage_mb" {
@@ -89,9 +89,9 @@ variable "postgresql_password" {
 }
 
 variable "postgresql_sku_name" {
-  description = "PostgreSQL SKU name"
+  description = "PostgreSQL SKU name (e.g., B_Standard_B1ms for Burstable tier - cheapest option)"
   type        = string
-  default     = "B_Gen5_1"
+  default     = "B_Standard_B1ms"
 }
 
 variable "postgresql_storage_mb" {
@@ -109,7 +109,7 @@ variable "postgresql_auto_grow_enabled" {
 variable "postgresql_backup_retention_days" {
   description = "PostgreSQL backup retention days"
   type        = number
-  default     = 1
+  default     = 7
 }
 
 variable "postgresql_geo_redundant_backup_enabled" {

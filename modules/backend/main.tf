@@ -91,13 +91,13 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "CLOUD_PROVIDER"
-        value = "azure"
+        name  = "CORS_ORIGINS"
+        value = var.frontend_url
       }
 
       env {
-        name  = "CORS_ORIGINS"
-        value = var.frontend_url
+        name  = "CLOUD_PROVIDER"
+        value = "azure"
       }
     }
   }

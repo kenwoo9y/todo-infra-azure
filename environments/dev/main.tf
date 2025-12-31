@@ -1,6 +1,9 @@
 provider "azurerm" {
   features {}
   subscription_id = var.subscription_id
+
+  # azurerm provider automatically registers resource providers when needed
+  # If providers are already registered, Terraform will use them automatically
 }
 
 locals {
@@ -60,7 +63,9 @@ module "backend" {
   default_database_type = var.default_database_type
 
   # Managed Identity
-  container_app_managed_identity_id = azurerm_user_assigned_identity.container_app.id
+  # Use principal_id for role assignments, but id for identity_ids in Container App
+  container_app_managed_identity_id           = azurerm_user_assigned_identity.container_app.id
+  container_app_managed_identity_principal_id = azurerm_user_assigned_identity.container_app.principal_id
 
   # Key Vault Secret IDs
   mysql_database_url_secret_id      = module.database.mysql_database_url_secret_id

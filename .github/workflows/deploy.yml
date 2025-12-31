@@ -1,0 +1,135 @@
+name: Terraform Deploy Workflow
+
+on:
+  push:
+    branches:
+      - dev
+      - stg
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy (dev, stg, prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - stg
+          - prod
+
+defaults:
+  run:
+    working-directory: .
+
+jobs:
+  terraform-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # Azure OIDC認証に必要
+    environment:
+      name: ${{ github.ref_name }}
+    env:
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+      TF_ORG_NAME: ${{ secrets.TF_ORG_NAME }}
+      TF_WORKSPACE_NAME_PREFIX: ${{ secrets.TF_WORKSPACE_NAME_PREFIX }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.1.7'
+          terraform_wrapper: false
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            ENV="${{ github.event.inputs.environment }}"
+          else
+            BRANCH="${{ github.ref_name }}"
+            case "$BRANCH" in
+              dev) ENV="dev" ;;
+              stg) ENV="stg" ;;
+              main) ENV="dev" ;;
+              *)
+                echo "::error::Branch '$BRANCH' is not configured for automatic deployment."
+                exit 1
+                ;;
+            esac
+          fi
+          echo "env=$ENV" >> $GITHUB_OUTPUT
+
+      - name: Setup Terraform Cloud backend
+        working-directory: environments/${{ steps.env.outputs.env }}
+        run: |
+          if [ -z "$TF_ORG_NAME" ] || [ -z "$TF_WORKSPACE_NAME_PREFIX" ]; then
+            echo "::error::TF_ORG_NAME and TF_WORKSPACE_NAME_PREFIX secrets must be set"
+            exit 1
+          fi
+          WORKSPACE_NAME="${TF_WORKSPACE_NAME_PREFIX}-${{ steps.env.outputs.env }}"
+          printf 'organization = "%s"\nworkspaces {\n  name = "%s"\n}\n' "${TF_ORG_NAME}" "${WORKSPACE_NAME}" > backend-config.tfbackend
+          echo "TF_CLI_ARGS_init=-backend-config=backend-config.tfbackend" >> $GITHUB_ENV
+          echo "Backend configuration created:"
+          cat backend-config.tfbackend
+
+      - name: Set Terraform variables from GitHub Secrets
+        working-directory: environments/${{ steps.env.outputs.env }}
+        run: |
+          [ -n "${{ secrets.TF_VAR_SUBSCRIPTION_ID }}" ] && echo "TF_VAR_subscription_id=${{ secrets.TF_VAR_SUBSCRIPTION_ID }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_LOCATION }}" ] && echo "TF_VAR_location=${{ secrets.TF_VAR_LOCATION }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_MYSQL_PASSWORD }}" ] && echo "TF_VAR_mysql_password=${{ secrets.TF_VAR_MYSQL_PASSWORD }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_POSTGRESQL_PASSWORD }}" ] && echo "TF_VAR_postgresql_password=${{ secrets.TF_VAR_POSTGRESQL_PASSWORD }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_ENVIRONMENT }}" ] && echo "TF_VAR_environment=${{ secrets.TF_VAR_ENVIRONMENT }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_NAME_PREFIX }}" ] && echo "TF_VAR_name_prefix=${{ secrets.TF_VAR_NAME_PREFIX }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_CONTAINER_IMAGE }}" ] && echo "TF_VAR_container_image=${{ secrets.TF_VAR_CONTAINER_IMAGE }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_DEFAULT_DATABASE_TYPE }}" ] && echo "TF_VAR_default_database_type=${{ secrets.TF_VAR_DEFAULT_DATABASE_TYPE }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_MYSQL_DATABASE_NAME }}" ] && echo "TF_VAR_mysql_database_name=${{ secrets.TF_VAR_MYSQL_DATABASE_NAME }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_POSTGRESQL_DATABASE_NAME }}" ] && echo "TF_VAR_postgresql_database_name=${{ secrets.TF_VAR_POSTGRESQL_DATABASE_NAME }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_MYSQL_USER }}" ] && echo "TF_VAR_mysql_user=${{ secrets.TF_VAR_MYSQL_USER }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_POSTGRESQL_USER }}" ] && echo "TF_VAR_postgresql_user=${{ secrets.TF_VAR_POSTGRESQL_USER }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_LOG_ANALYTICS_WORKSPACE_SKU }}" ] && echo "TF_VAR_log_analytics_workspace_sku=${{ secrets.TF_VAR_LOG_ANALYTICS_WORKSPACE_SKU }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_CONTAINER_APP_CPU }}" ] && echo "TF_VAR_container_app_cpu=${{ secrets.TF_VAR_CONTAINER_APP_CPU }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_CONTAINER_APP_MEMORY }}" ] && echo "TF_VAR_container_app_memory=${{ secrets.TF_VAR_CONTAINER_APP_MEMORY }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_CONTAINER_APP_TARGET_PORT }}" ] && echo "TF_VAR_container_app_target_port=${{ secrets.TF_VAR_CONTAINER_APP_TARGET_PORT }}" >> $GITHUB_ENV || true
+          
+          echo "Set Terraform environment variables:"
+          env | grep "^TF_VAR_" || echo "No TF_VAR_* environment variables set (using defaults)"
+
+      - name: Terraform Init
+        working-directory: environments/${{ steps.env.outputs.env }}
+        run: |
+          if [ ! -f "backend-config.tfbackend" ]; then
+            echo "::error::backend-config.tfbackend file not found. TF_ORG_NAME and TF_WORKSPACE_NAME_PREFIX must be set."
+            exit 1
+          fi
+          if [ -z "$TF_TOKEN_app_terraform_io" ]; then
+            echo "::error::TF_TOKEN_app_terraform_io is not set. Please set TF_API_TOKEN secret."
+            exit 1
+          fi
+          terraform init -input=false -backend-config=backend-config.tfbackend
+
+      - name: Terraform Plan
+        working-directory: environments/${{ steps.env.outputs.env }}
+        run: terraform plan -no-color -compact-warnings -out=tfplan
+
+      - name: Terraform Apply
+        working-directory: environments/${{ steps.env.outputs.env }}
+        run: terraform apply -no-color -compact-warnings -auto-approve tfplan
+
+      - name: Cleanup
+        working-directory: environments/${{ steps.env.outputs.env }}
+        if: always()
+        run: rm -f backend-config.tfbackend
+

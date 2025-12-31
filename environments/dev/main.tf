@@ -54,6 +54,11 @@ module "backend" {
   # Container Image
   container_image = var.container_image
 
+  # Container App Resource Settings
+  container_app_cpu         = var.container_app_cpu
+  container_app_memory      = var.container_app_memory
+  container_app_target_port = var.container_app_target_port
+
   # Log Analytics Workspace
   log_analytics_workspace_name              = var.log_analytics_workspace_name
   log_analytics_workspace_sku               = var.log_analytics_workspace_sku

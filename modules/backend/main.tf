@@ -35,7 +35,7 @@ resource "azurerm_role_assignment" "acr_pull" {
   count                = var.container_image != "" ? 1 : 0
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPull"
-  principal_id         = var.container_app_managed_identity_id
+  principal_id         = var.container_app_managed_identity_principal_id
 }
 
 # Container Apps
@@ -91,13 +91,13 @@ resource "azurerm_container_app" "backend" {
       }
 
       env {
-        name  = "CLOUD_PROVIDER"
-        value = "azure"
+        name  = "CORS_ORIGINS"
+        value = var.frontend_url
       }
 
       env {
-        name  = "CORS_ORIGINS"
-        value = var.frontend_url
+        name  = "CLOUD_PROVIDER"
+        value = "azure"
       }
     }
   }

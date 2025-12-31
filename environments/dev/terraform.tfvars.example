@@ -26,3 +26,11 @@ mysql_database_name = "todo_mysql_db"
 postgresql_database_name = "todo_postgresql_db"
 mysql_user = "todo_mysql_user"
 postgresql_user = "todo_postgresql_user"
+
+# Log Analytics Workspace settings (Optional)
+log_analytics_workspace_sku = "PerGB2018"
+
+# Container App resource settings (Optional)
+container_app_cpu = 0.25
+container_app_memory = "0.5Gi"
+container_app_target_port = 8000

@@ -70,9 +70,9 @@ variable "container_app_cpu" {
 }
 
 variable "container_app_memory" {
-  description = "Container App memory allocation"
+  description = "Container App memory allocation (must match valid CPU-Memory combinations: 0.25 CPU = 0.5Gi, 0.5 CPU = 1.0Gi, etc.)"
   type        = string
-  default     = "0.25Gi"
+  default     = "0.5Gi"
 }
 
 # Database Configuration
@@ -96,12 +96,17 @@ variable "container_app_external_enabled" {
 variable "container_app_target_port" {
   description = "Container App target port"
   type        = number
-  default     = 8080
+  default     = 8000
 }
 
 # Key Vault Configuration
 variable "container_app_managed_identity_id" {
-  description = "Managed Identity ID for Container App"
+  description = "Managed Identity resource ID for Container App (used for identity_ids)"
+  type        = string
+}
+
+variable "container_app_managed_identity_principal_id" {
+  description = "Managed Identity Principal ID (GUID) for Container App (used for role assignments)"
   type        = string
 }
 

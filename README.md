@@ -42,6 +42,160 @@ This is a Terraform infrastructure project for deploying ToDo applications on Mi
 3. Install [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli)
 4. Create an [Azure Subscription](https://portal.azure.com/) and get your subscription ID
 5. Enable required resource providers in your Azure subscription
+6. Authenticate with Terraform Cloud:
+   ```bash
+   terraform login
+   ```
+
+### Terraform Cloud Setup
+This project uses Terraform Cloud for state management.
+
+#### 1. Create Terraform Cloud Organization and Workspaces
+1. Log in to [Terraform Cloud](https://app.terraform.io/)
+2. Create an Organization (if you don't have one)
+3. Create Workspaces for each environment:
+   - `{workspace-prefix}-dev`
+   - `{workspace-prefix}-staging`
+   - `{workspace-prefix}-production`
+
+#### 2. OIDC Authentication Setup (Recommended)
+Setup instructions for using OIDC authentication to deploy to Azure from Terraform Cloud:
+
+**Azure-side Configuration:**
+1. Create a Federated Credential in Azure AD:
+   ```bash
+   # Create Federated Credential for Terraform Cloud
+   az ad app create --display-name "terraform-cloud-oidc"
+   
+   # Get the application ID
+   APP_ID=$(az ad app list --display-name "terraform-cloud-oidc" --query "[0].appId" -o tsv)
+   
+   # Create Service Principal
+   az ad sp create --id $APP_ID
+   
+   # Assign Contributor role to Subscription
+   az role assignment create \
+     --assignee $APP_ID \
+     --role Contributor \
+     --scope /subscriptions/YOUR_SUBSCRIPTION_ID
+   
+   # Create Federated Credential
+   # Note: You need to create a separate Federated Credential for each Workspace
+   # Create JSON file
+   cat > /tmp/federated-credential.json <<EOF
+   {
+     "name": "terraform-cloud-oidc-workspace-dev",
+     "issuer": "https://app.terraform.io",
+     "subject": "organization:YOUR_ORG_NAME:workspace:YOUR_WORKSPACE_PREFIX-dev:run_phase:*",
+     "audiences": ["terraform.io"]
+   }
+   EOF
+   
+   az ad app federated-credential create \
+     --id $APP_ID \
+     --parameters /tmp/federated-credential.json
+   
+   # Create similar credentials for staging and production environments
+   ```
+
+**Terraform Cloud-side Configuration:**
+1. Navigate to your Terraform Cloud Workspace
+2. Go to Settings → Variables
+3. Add the following environment variables:
+   - `ARM_USE_OIDC`: `true`
+   - `ARM_CLIENT_ID`: Azure AD application Client ID (the `$APP_ID` above)
+   - `ARM_SUBSCRIPTION_ID`: Azure Subscription ID
+   - `ARM_TENANT_ID`: Azure Tenant ID
+
+**Note:** When using OIDC authentication, `ARM_CLIENT_SECRET` is not required.
+
+### GitHub Actions Setup
+Setup instructions for deploying from GitHub Actions:
+
+#### 1. Azure OIDC Authentication Setup
+Setup instructions for using OIDC authentication to deploy to Azure from GitHub Actions:
+
+**Azure-side Configuration:**
+1. Create a Federated Credential in Azure AD:
+   ```bash
+   # Create Federated Credential for GitHub Actions
+   az ad app create --display-name "github-actions-oidc"
+   
+   # Get the application ID
+   APP_ID=$(az ad app list --display-name "github-actions-oidc" --query "[0].appId" -o tsv)
+   
+   # Create Service Principal
+   az ad sp create --id $APP_ID
+   
+   # Assign Contributor role to Subscription
+   az role assignment create \
+     --assignee $APP_ID \
+     --role Contributor \
+     --scope /subscriptions/YOUR_SUBSCRIPTION_ID
+   
+   # Create Federated Credential (for GitHub repository)
+   # Branch-based authentication
+   cat > /tmp/github-oidc-branch.json <<EOF
+   {
+     "name": "github-actions-oidc-main",
+     "issuer": "https://token.actions.githubusercontent.com",
+     "subject": "repo:YOUR_GITHUB_ORG/YOUR_REPO_NAME:ref:refs/heads/main",
+     "audiences": ["api://AzureADTokenExchange"]
+   }
+   EOF
+   
+   az ad app federated-credential create \
+     --id $APP_ID \
+     --parameters /tmp/github-oidc-branch.json
+   
+   # Also create environment-specific Federated Credentials (recommended)
+   # For dev environment
+   cat > /tmp/github-oidc-dev.json <<EOF
+   {
+     "name": "github-actions-oidc-dev",
+     "issuer": "https://token.actions.githubusercontent.com",
+     "subject": "repo:YOUR_GITHUB_ORG/YOUR_REPO_NAME:environment:dev",
+     "audiences": ["api://AzureADTokenExchange"]
+   }
+   EOF
+   
+   az ad app federated-credential create \
+     --id $APP_ID \
+     --parameters /tmp/github-oidc-dev.json
+   
+   # Create similar credentials for staging and production environments
+   ```
+
+**GitHub-side Configuration:**
+1. Navigate to GitHub repository Settings → Secrets and variables → Actions
+2. Add the following Secrets:
+   - `AZURE_CLIENT_ID`: Azure AD application Client ID (the `$APP_ID` above)
+   - `AZURE_TENANT_ID`: Azure Tenant ID
+   - `AZURE_SUBSCRIPTION_ID`: Azure Subscription ID
+   - `TF_ORG_NAME`: Terraform Cloud Organization name
+   - `TF_WORKSPACE_NAME_PREFIX`: Terraform Cloud Workspace name prefix (e.g., `todo-infra`)
+
+3. Create environments in GitHub repository Settings → Environments (dev, staging, production)
+
+4. Terraform Cloud Authentication:
+   - When using Terraform Cloud from GitHub Actions, Terraform Cloud authentication is required
+   - Method 1: Add `TF_TOKEN_app_terraform_io` to GitHub Secrets (recommended)
+   - Method 2: Create an API Token in Terraform Cloud Workspace and add it to GitHub Secrets
+   - Note: `terraform login` is only valid for local environments and cannot be used in GitHub Actions
+
+#### 2. Deploying with GitHub Actions
+How to deploy from GitHub Actions:
+
+**Manual Deployment (workflow_dispatch):**
+1. Navigate to the GitHub repository Actions tab
+2. Select "Terraform Deploy Workflow"
+3. Click "Run workflow"
+4. Select environment (dev/staging/production) and action (plan/apply/destroy)
+5. Click "Run workflow"
+
+**Automatic Deployment (push):**
+- Pushing to the `main` branch automatically runs plan
+- For actual deployment, use workflow_dispatch manually
 
 ### Initial Setup
 1. Clone this repository:
@@ -107,8 +261,8 @@ The project supports multiple environments (dev, staging, production) with separ
 - **Location**: `environments/dev/`
 - **Default Database**: MySQL
 - **Database Plans**:
-  - MySQL: `B_Gen5_1` (Basic tier)
-  - PostgreSQL: `B_Gen5_1` (Basic tier)
+  - MySQL: `B_Standard_B1ms` (Burstable tier - cheapest option)
+  - PostgreSQL: `B_Standard_B1ms` (Burstable tier - cheapest option)
 
 #### Configuration Variables
 - `resource_group_name`: Azure Resource Group name (required)
@@ -206,34 +360,3 @@ After deployment, the following information is available:
 - Container Apps are configured with appropriate network security
 - Infrastructure changes are version controlled
 - Code quality is enforced through linting and formatting
-
-## Troubleshooting
-### Common Issues
-1. **Azure Authentication**:
-    ```
-    $ az login
-    ```
-
-2. **Subscription ID Not Set**:
-    - Verify your Azure subscription is active
-    - Ensure you have the necessary permissions
-
-3. **Resource Provider Not Registered**:
-    - Register required resource providers in your Azure subscription:
-      - Microsoft.Storage
-      - Microsoft.ContainerRegistry
-      - Microsoft.App
-      - Microsoft.DBforMySQL
-      - Microsoft.DBforPostgreSQL
-      - Microsoft.Network
-      - Microsoft.Resources
-
-4. **Database Connection Issues**:
-    - Verify database connection strings in Terraform outputs
-    - Check Azure Database instance status in portal
-    - Ensure proper network configuration
-
-### Getting Help
-- Run `make help` for available commands
-- Check script help: `./scripts/deploy.sh --help`
-- Review Terraform outputs: `terraform output`

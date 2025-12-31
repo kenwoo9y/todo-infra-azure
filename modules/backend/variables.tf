@@ -96,7 +96,7 @@ variable "container_app_external_enabled" {
 variable "container_app_target_port" {
   description = "Container App target port"
   type        = number
-  default     = 8080
+  default     = 8000
 }
 
 # Key Vault Configuration

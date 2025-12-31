@@ -89,8 +89,15 @@ jobs:
         run: |
           [ -n "${{ secrets.TF_VAR_SUBSCRIPTION_ID }}" ] && echo "TF_VAR_subscription_id=${{ secrets.TF_VAR_SUBSCRIPTION_ID }}" >> $GITHUB_ENV || true
           [ -n "${{ secrets.TF_VAR_LOCATION }}" ] && echo "TF_VAR_location=${{ secrets.TF_VAR_LOCATION }}" >> $GITHUB_ENV || true
-          [ -n "${{ secrets.TF_VAR_MYSQL_PASSWORD }}" ] && echo "TF_VAR_mysql_password=${{ secrets.TF_VAR_MYSQL_PASSWORD }}" >> $GITHUB_ENV || true
-          [ -n "${{ secrets.TF_VAR_POSTGRESQL_PASSWORD }}" ] && echo "TF_VAR_postgresql_password=${{ secrets.TF_VAR_POSTGRESQL_PASSWORD }}" >> $GITHUB_ENV || true
+          # Mask passwords to prevent them from appearing in logs
+          if [ -n "${{ secrets.TF_VAR_MYSQL_PASSWORD }}" ]; then
+            echo "TF_VAR_mysql_password=${{ secrets.TF_VAR_MYSQL_PASSWORD }}" >> $GITHUB_ENV
+            echo "::add-mask::${{ secrets.TF_VAR_MYSQL_PASSWORD }}"
+          fi
+          if [ -n "${{ secrets.TF_VAR_POSTGRESQL_PASSWORD }}" ]; then
+            echo "TF_VAR_postgresql_password=${{ secrets.TF_VAR_POSTGRESQL_PASSWORD }}" >> $GITHUB_ENV
+            echo "::add-mask::${{ secrets.TF_VAR_POSTGRESQL_PASSWORD }}"
+          fi
           [ -n "${{ secrets.TF_VAR_ENVIRONMENT }}" ] && echo "TF_VAR_environment=${{ secrets.TF_VAR_ENVIRONMENT }}" >> $GITHUB_ENV || true
           [ -n "${{ secrets.TF_VAR_NAME_PREFIX }}" ] && echo "TF_VAR_name_prefix=${{ secrets.TF_VAR_NAME_PREFIX }}" >> $GITHUB_ENV || true
           [ -n "${{ secrets.TF_VAR_CONTAINER_IMAGE }}" ] && echo "TF_VAR_container_image=${{ secrets.TF_VAR_CONTAINER_IMAGE }}" >> $GITHUB_ENV || true
@@ -104,8 +111,9 @@ jobs:
           [ -n "${{ secrets.TF_VAR_CONTAINER_APP_MEMORY }}" ] && echo "TF_VAR_container_app_memory=${{ secrets.TF_VAR_CONTAINER_APP_MEMORY }}" >> $GITHUB_ENV || true
           [ -n "${{ secrets.TF_VAR_CONTAINER_APP_TARGET_PORT }}" ] && echo "TF_VAR_container_app_target_port=${{ secrets.TF_VAR_CONTAINER_APP_TARGET_PORT }}" >> $GITHUB_ENV || true
           
-          echo "Set Terraform environment variables:"
-          env | grep "^TF_VAR_" || echo "No TF_VAR_* environment variables set (using defaults)"
+          echo "Set Terraform environment variables (sensitive values are masked in logs):"
+          # List variable names only, not values (to avoid exposing secrets)
+          env | grep "^TF_VAR_" | cut -d'=' -f1 | sed 's/^/  - /' || echo "No TF_VAR_* environment variables set (using defaults)"
 
       - name: Terraform Init
         working-directory: environments/${{ steps.env.outputs.env }}
@@ -119,6 +127,53 @@ jobs:
             exit 1
           fi
           terraform init -input=false -backend-config=backend-config.tfbackend
+
+      - name: Import existing Key Vault Access Policy (if exists)
+        working-directory: environments/${{ steps.env.outputs.env }}
+        continue-on-error: true
+        run: |
+          # Get Key Vault name and service principal object ID
+          KEY_VAULT_NAME="${TF_VAR_name_prefix:-todo}-${TF_VAR_environment:-dev}-kv"
+          RESOURCE_GROUP="${TF_VAR_name_prefix:-todo}-${TF_VAR_environment:-dev}-rg"
+          OBJECT_ID=$(az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id -o tsv 2>/dev/null || echo "")
+          
+          # Skip if object ID cannot be retrieved
+          if [ -z "$OBJECT_ID" ]; then
+            echo "Could not get service principal object ID, skipping import"
+            exit 0
+          fi
+          
+          # Skip if already in state
+          if terraform state list 2>/dev/null | grep -q "module.database.azurerm_key_vault_access_policy.terraform"; then
+            echo "Access policy already in state, skipping import"
+            exit 0
+          fi
+          
+          # Skip if Key Vault doesn't exist
+          if ! az keyvault show --name "$KEY_VAULT_NAME" --resource-group "$RESOURCE_GROUP" >/dev/null 2>&1; then
+            echo "Key Vault does not exist yet, skipping import"
+            exit 0
+          fi
+          
+          # Check if access policy exists in Azure
+          SUBSCRIPTION_ID="${TF_VAR_subscription_id:-${{ secrets.AZURE_SUBSCRIPTION_ID }}}"
+          KEY_VAULT_ID="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers/Microsoft.KeyVault/vaults/${KEY_VAULT_NAME}"
+          IMPORT_ID="${KEY_VAULT_ID}/objectId/${OBJECT_ID}"
+          
+          # Check if access policy exists
+          if az keyvault show --name "$KEY_VAULT_NAME" --resource-group "$RESOURCE_GROUP" --query "properties.accessPolicies[?objectId=='$OBJECT_ID']" -o json 2>/dev/null | grep -q "$OBJECT_ID"; then
+            echo "Existing access policy found, attempting to import..."
+            if terraform import -no-color module.database.azurerm_key_vault_access_policy.terraform "$IMPORT_ID" 2>/dev/null; then
+              echo "Successfully imported existing Key Vault access policy"
+            else
+              echo "::warning::Could not import existing access policy. If Terraform fails with 'already exists' error, manually import it:"
+              # Mask sensitive parts of the import ID
+              MASKED_IMPORT_ID="${KEY_VAULT_ID}/objectId/***MASKED***"
+              echo "terraform import module.database.azurerm_key_vault_access_policy.terraform \"$MASKED_IMPORT_ID\""
+            fi
+          else
+            echo "Access policy does not exist in Azure, Terraform will create it"
+          fi
 
       - name: Terraform Plan
         working-directory: environments/${{ steps.env.outputs.env }}

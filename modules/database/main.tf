@@ -97,6 +97,11 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Backup",
     "Restore"
   ]
+
+  # Allow importing existing access policies that were created manually
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Key Vault Access Policy for Managed Identity

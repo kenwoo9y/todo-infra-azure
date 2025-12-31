@@ -166,6 +166,44 @@ Setup instructions for using OIDC authentication to deploy to Azure from GitHub 
    # Create similar credentials for staging and production environments
    ```
 
+2. **Grant Key Vault Access Permissions** (Required):
+   
+   The service principal needs access to Key Vault to read and manage secrets. This is especially important if Key Vault already exists or when Terraform needs to read existing secrets during `terraform plan` or `terraform apply`.
+   
+   **Option A: Using Azure Portal:**
+   1. Navigate to Azure Portal → Key Vaults → Your Key Vault
+   2. Go to "Access policies" → "Add Access Policy"
+   3. Search for your service principal (using the Client ID from step 1)
+   4. Grant the following Secret permissions:
+      - `Get`, `List`, `Set`, `Delete`, `Recover`, `Backup`, `Restore`
+   5. Click "Add" and "Save"
+   
+   **Option B: Using Azure CLI:**
+   ```bash
+   # Get the service principal Object ID
+   SP_OBJECT_ID=$(az ad sp show --id $APP_ID --query id -o tsv)
+   
+   # Grant Key Vault access permissions
+   az keyvault set-policy \
+     --name <YOUR_KEY_VAULT_NAME> \
+     --object-id $SP_OBJECT_ID \
+     --secret-permissions get list set delete recover backup restore
+   ```
+   
+   **Option C: Using RBAC (Role-Based Access Control):**
+   ```bash
+   # Get the service principal Object ID
+   SP_OBJECT_ID=$(az ad sp show --id $APP_ID --query id -o tsv)
+   
+   # Assign Key Vault Secrets Officer role
+   az role assignment create \
+     --role "Key Vault Secrets Officer" \
+     --assignee $SP_OBJECT_ID \
+     --scope /subscriptions/<YOUR_SUBSCRIPTION_ID>/resourceGroups/<YOUR_RESOURCE_GROUP>/providers/Microsoft.KeyVault/vaults/<YOUR_KEY_VAULT_NAME>
+   ```
+   
+   **Note:** If Key Vault doesn't exist yet, you can skip this step for the initial deployment. However, you'll need to grant permissions before subsequent deployments if Terraform needs to read existing secrets.
+
 **GitHub-side Configuration:**
 1. Navigate to GitHub repository Settings → Secrets and variables → Actions
 2. Add the following Secrets:

@@ -221,20 +221,6 @@ Setup instructions for using OIDC authentication to deploy to Azure from GitHub 
    - Method 2: Create an API Token in Terraform Cloud Workspace and add it to GitHub Secrets
    - Note: `terraform login` is only valid for local environments and cannot be used in GitHub Actions
 
-5. **Terraform Variables (Optional)**:
-   Add the following secrets if you want to override default values from `terraform.tfvars.example`:
-   - `TF_VAR_SUBSCRIPTION_ID`: Azure Subscription ID
-   - `TF_VAR_LOCATION`: Azure region (e.g., "japaneast")
-   - `TF_VAR_MYSQL_PASSWORD`: MySQL database password
-   - `TF_VAR_POSTGRESQL_PASSWORD`: PostgreSQL database password
-   - `TF_VAR_ENVIRONMENT`: Environment name (dev/stg/prod)
-   - `TF_VAR_NAME_PREFIX`: Name prefix for resources
-   - `TF_VAR_CONTAINER_IMAGE`: Container image path
-   - `TF_VAR_DEFAULT_DATABASE_TYPE`: Default database type (mysql/postgresql)
-   - And other variables as needed (see `environments/dev/terraform.tfvars.example` for full list)
-   
-   **Note:** If secrets are not set, Terraform will use default values from `terraform.tfvars.example` or variable defaults.
-
 #### 2. Deploying with GitHub Actions
 How to deploy from GitHub Actions:
 
@@ -248,34 +234,6 @@ How to deploy from GitHub Actions:
 **Automatic Deployment (push):**
 - Pushing to the `main` branch automatically runs plan
 - For actual deployment, use workflow_dispatch manually
-
-#### 3. Troubleshooting: Importing Existing Key Vault Access Policies
-If you encounter an error like "a resource with the ID already exists", it means a Key Vault access policy was created manually or outside of Terraform. The workflow will attempt to automatically import it, but if that fails, you can manually import it:
-
-**Manual Import Steps:**
-1. Get the service principal Object ID:
-   ```bash
-   az ad sp show --id <AZURE_CLIENT_ID> --query id -o tsv
-   ```
-
-2. Get the Key Vault resource ID:
-   ```bash
-   KEY_VAULT_NAME="<name_prefix>-<environment>-kv"
-   RESOURCE_GROUP="<name_prefix>-<environment>-rg"
-   az keyvault show --name "$KEY_VAULT_NAME" --resource-group "$RESOURCE_GROUP" --query id -o tsv
-   ```
-
-3. Import the access policy:
-   ```bash
-   cd environments/<environment>
-   terraform init
-   terraform import module.database.azurerm_key_vault_access_policy.terraform "<KEY_VAULT_ID>/objectId/<OBJECT_ID>"
-   ```
-
-   Example:
-   ```bash
-   terraform import module.database.azurerm_key_vault_access_policy.terraform "/subscriptions/xxx/resourceGroups/xxx/providers/Microsoft.KeyVault/vaults/xxx/objectId/xxx"
-   ```
 
 ### Initial Setup
 1. Clone this repository:

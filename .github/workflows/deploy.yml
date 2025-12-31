@@ -89,15 +89,8 @@ jobs:
         run: |
           [ -n "${{ secrets.TF_VAR_SUBSCRIPTION_ID }}" ] && echo "TF_VAR_subscription_id=${{ secrets.TF_VAR_SUBSCRIPTION_ID }}" >> $GITHUB_ENV || true
           [ -n "${{ secrets.TF_VAR_LOCATION }}" ] && echo "TF_VAR_location=${{ secrets.TF_VAR_LOCATION }}" >> $GITHUB_ENV || true
-          # Mask passwords to prevent them from appearing in logs
-          if [ -n "${{ secrets.TF_VAR_MYSQL_PASSWORD }}" ]; then
-            echo "TF_VAR_mysql_password=${{ secrets.TF_VAR_MYSQL_PASSWORD }}" >> $GITHUB_ENV
-            echo "::add-mask::${{ secrets.TF_VAR_MYSQL_PASSWORD }}"
-          fi
-          if [ -n "${{ secrets.TF_VAR_POSTGRESQL_PASSWORD }}" ]; then
-            echo "TF_VAR_postgresql_password=${{ secrets.TF_VAR_POSTGRESQL_PASSWORD }}" >> $GITHUB_ENV
-            echo "::add-mask::${{ secrets.TF_VAR_POSTGRESQL_PASSWORD }}"
-          fi
+          [ -n "${{ secrets.TF_VAR_MYSQL_PASSWORD }}" ] && echo "TF_VAR_mysql_password=${{ secrets.TF_VAR_MYSQL_PASSWORD }}" >> $GITHUB_ENV || true
+          [ -n "${{ secrets.TF_VAR_POSTGRESQL_PASSWORD }}" ] && echo "TF_VAR_postgresql_password=${{ secrets.TF_VAR_POSTGRESQL_PASSWORD }}" >> $GITHUB_ENV || true
           [ -n "${{ secrets.TF_VAR_ENVIRONMENT }}" ] && echo "TF_VAR_environment=${{ secrets.TF_VAR_ENVIRONMENT }}" >> $GITHUB_ENV || true
           [ -n "${{ secrets.TF_VAR_NAME_PREFIX }}" ] && echo "TF_VAR_name_prefix=${{ secrets.TF_VAR_NAME_PREFIX }}" >> $GITHUB_ENV || true
           [ -n "${{ secrets.TF_VAR_CONTAINER_IMAGE }}" ] && echo "TF_VAR_container_image=${{ secrets.TF_VAR_CONTAINER_IMAGE }}" >> $GITHUB_ENV || true
@@ -111,9 +104,8 @@ jobs:
           [ -n "${{ secrets.TF_VAR_CONTAINER_APP_MEMORY }}" ] && echo "TF_VAR_container_app_memory=${{ secrets.TF_VAR_CONTAINER_APP_MEMORY }}" >> $GITHUB_ENV || true
           [ -n "${{ secrets.TF_VAR_CONTAINER_APP_TARGET_PORT }}" ] && echo "TF_VAR_container_app_target_port=${{ secrets.TF_VAR_CONTAINER_APP_TARGET_PORT }}" >> $GITHUB_ENV || true
           
-          echo "Set Terraform environment variables (sensitive values are masked in logs):"
-          # List variable names only, not values (to avoid exposing secrets)
-          env | grep "^TF_VAR_" | cut -d'=' -f1 | sed 's/^/  - /' || echo "No TF_VAR_* environment variables set (using defaults)"
+          echo "Set Terraform environment variables:"
+          env | grep "^TF_VAR_" || echo "No TF_VAR_* environment variables set (using defaults)"
 
       - name: Terraform Init
         working-directory: environments/${{ steps.env.outputs.env }}

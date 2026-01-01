@@ -92,8 +92,9 @@ module "backend" {
 module "frontend" {
   source = "../../modules/frontend"
 
-  resource_group_name = azurerm_resource_group.main.name
-  location            = var.location
-  name_prefix         = var.name_prefix
-  environment         = var.environment
+  resource_group_name                   = azurerm_resource_group.main.name
+  location                              = var.location
+  name_prefix                           = var.name_prefix
+  environment                           = var.environment
+  terraform_service_principal_object_id = local.terraform_object_id
 } 

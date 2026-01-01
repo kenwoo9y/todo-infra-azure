@@ -135,4 +135,10 @@ variable "key_vault_purge_protection_enabled" {
 variable "container_app_managed_identity_principal_id" {
   description = "Principal ID of the Container App's Managed Identity for Key Vault access"
   type        = string
+}
+
+# Terraform service principal for Key Vault access
+variable "terraform_service_principal_object_id" {
+  description = "Object ID of the service principal/user used by Terraform to manage Key Vault secrets. This should be the same across all execution environments (local, CI/CD)."
+  type        = string
 } 

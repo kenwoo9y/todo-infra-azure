@@ -34,3 +34,10 @@ log_analytics_workspace_sku = "PerGB2018"
 container_app_cpu = 0.25
 container_app_memory = "0.5Gi"
 container_app_target_port = 8000
+
+# Terraform Service Principal Object ID (Optional)
+# This should be set to the same service principal object_id used in CI/CD (GitHub Actions)
+# to ensure consistent Key Vault access policy across all execution environments.
+# If not set, will use the current authenticated user/service principal's object_id.
+# Get this value using: az ad sp show --id <CLIENT_ID> --query id -o tsv
+# terraform_service_principal_object_id = "your-service-principal-object-id"

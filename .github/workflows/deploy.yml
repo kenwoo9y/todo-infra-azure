@@ -135,26 +135,35 @@ jobs:
             exit 0
           fi
           
-          # Skip if already in state
-          if terraform state list 2>/dev/null | grep -q "module.database.azurerm_key_vault_access_policy.terraform"; then
-            echo "Access policy already in state, skipping import"
-            exit 0
-          fi
-          
           # Skip if Key Vault doesn't exist
           if ! az keyvault show --name "$KEY_VAULT_NAME" --resource-group "$RESOURCE_GROUP" >/dev/null 2>&1; then
             echo "Key Vault does not exist yet, skipping import"
             exit 0
           fi
           
-          # Check if access policy exists in Azure
           SUBSCRIPTION_ID="${TF_VAR_subscription_id:-${{ secrets.AZURE_SUBSCRIPTION_ID }}}"
           KEY_VAULT_ID="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers/Microsoft.KeyVault/vaults/${KEY_VAULT_NAME}"
           IMPORT_ID="${KEY_VAULT_ID}/objectId/${OBJECT_ID}"
           
-          # Check if access policy exists
+          # Check if access policy is already in Terraform state
+          if terraform state list 2>/dev/null | grep -q "module.database.azurerm_key_vault_access_policy.terraform"; then
+            # Get the object_id from the state
+            STATE_OBJECT_ID=$(terraform state show -no-color module.database.azurerm_key_vault_access_policy.terraform 2>/dev/null | grep -E "^[[:space:]]*object_id[[:space:]]*=" | sed 's/.*= "\(.*\)"/\1/' | tr -d ' ')
+            
+            # If object_id matches, skip import
+            if [ "$STATE_OBJECT_ID" = "$OBJECT_ID" ]; then
+              echo "Access policy already in state with correct object_id, skipping import"
+              exit 0
+            else
+              echo "Access policy in state has different object_id ($STATE_OBJECT_ID vs $OBJECT_ID)"
+              echo "Removing from state to re-import with correct object_id..."
+              terraform state rm -no-color module.database.azurerm_key_vault_access_policy.terraform 2>/dev/null || true
+            fi
+          fi
+          
+          # Check if access policy exists in Azure for current service principal
           if az keyvault show --name "$KEY_VAULT_NAME" --resource-group "$RESOURCE_GROUP" --query "properties.accessPolicies[?objectId=='$OBJECT_ID']" -o json 2>/dev/null | grep -q "$OBJECT_ID"; then
-            echo "Existing access policy found, attempting to import..."
+            echo "Existing access policy found for current service principal, attempting to import..."
             if terraform import -no-color module.database.azurerm_key_vault_access_policy.terraform "$IMPORT_ID" 2>/dev/null; then
               echo "Successfully imported existing Key Vault access policy"
             else
@@ -164,7 +173,7 @@ jobs:
               echo "terraform import module.database.azurerm_key_vault_access_policy.terraform \"$MASKED_IMPORT_ID\""
             fi
           else
-            echo "Access policy does not exist in Azure, Terraform will create it"
+            echo "Access policy does not exist in Azure for current service principal, Terraform will create it"
           fi
 
       - name: Terraform Plan

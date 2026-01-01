@@ -84,6 +84,18 @@ jobs:
           echo "Backend configuration created:"
           cat backend-config.tfbackend
 
+      - name: Get Service Principal Object ID
+        id: sp_object_id
+        run: |
+          # Get the object ID of the service principal used for authentication
+          OBJECT_ID=$(az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id -o tsv 2>/dev/null || echo "")
+          if [ -z "$OBJECT_ID" ]; then
+            echo "::error::Could not retrieve service principal object ID"
+            exit 1
+          fi
+          echo "object_id=$OBJECT_ID" >> $GITHUB_OUTPUT
+          echo "Service Principal Object ID: $OBJECT_ID"
+
       - name: Set Terraform variables from GitHub Secrets
         working-directory: environments/${{ steps.env.outputs.env }}
         run: |
@@ -103,6 +115,8 @@ jobs:
           [ -n "${{ secrets.TF_VAR_CONTAINER_APP_CPU }}" ] && echo "TF_VAR_container_app_cpu=${{ secrets.TF_VAR_CONTAINER_APP_CPU }}" >> $GITHUB_ENV || true
           [ -n "${{ secrets.TF_VAR_CONTAINER_APP_MEMORY }}" ] && echo "TF_VAR_container_app_memory=${{ secrets.TF_VAR_CONTAINER_APP_MEMORY }}" >> $GITHUB_ENV || true
           [ -n "${{ secrets.TF_VAR_CONTAINER_APP_TARGET_PORT }}" ] && echo "TF_VAR_container_app_target_port=${{ secrets.TF_VAR_CONTAINER_APP_TARGET_PORT }}" >> $GITHUB_ENV || true
+          # Set terraform_service_principal_object_id to ensure consistent object_id across environments
+          echo "TF_VAR_terraform_service_principal_object_id=${{ steps.sp_object_id.outputs.object_id }}" >> $GITHUB_ENV
           
           echo "Set Terraform environment variables:"
           env | grep "^TF_VAR_" || echo "No TF_VAR_* environment variables set (using defaults)"
@@ -127,11 +141,11 @@ jobs:
           # Get Key Vault name and service principal object ID
           KEY_VAULT_NAME="${TF_VAR_name_prefix:-todo}-${TF_VAR_environment:-dev}-kv"
           RESOURCE_GROUP="${TF_VAR_name_prefix:-todo}-${TF_VAR_environment:-dev}-rg"
-          OBJECT_ID=$(az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id -o tsv 2>/dev/null || echo "")
+          OBJECT_ID="${{ steps.sp_object_id.outputs.object_id }}"
           
-          # Skip if object ID cannot be retrieved
+          # Skip if object ID is not available
           if [ -z "$OBJECT_ID" ]; then
-            echo "Could not get service principal object ID, skipping import"
+            echo "Service principal object ID not available, skipping import"
             exit 0
           fi
           
@@ -145,20 +159,10 @@ jobs:
           KEY_VAULT_ID="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers/Microsoft.KeyVault/vaults/${KEY_VAULT_NAME}"
           IMPORT_ID="${KEY_VAULT_ID}/objectId/${OBJECT_ID}"
           
-          # Check if access policy is already in Terraform state
+          # Skip if already in state (terraform_service_principal_object_id is always set, so state should match)
           if terraform state list 2>/dev/null | grep -q "module.database.azurerm_key_vault_access_policy.terraform"; then
-            # Get the object_id from the state
-            STATE_OBJECT_ID=$(terraform state show -no-color module.database.azurerm_key_vault_access_policy.terraform 2>/dev/null | grep -E "^[[:space:]]*object_id[[:space:]]*=" | sed 's/.*= "\(.*\)"/\1/' | tr -d ' ')
-            
-            # If object_id matches, skip import
-            if [ "$STATE_OBJECT_ID" = "$OBJECT_ID" ]; then
-              echo "Access policy already in state with correct object_id, skipping import"
-              exit 0
-            else
-              echo "Access policy in state has different object_id ($STATE_OBJECT_ID vs $OBJECT_ID)"
-              echo "Removing from state to re-import with correct object_id..."
-              terraform state rm -no-color module.database.azurerm_key_vault_access_policy.terraform 2>/dev/null || true
-            fi
+            echo "Access policy already in state, skipping import"
+            exit 0
           fi
           
           # Check if access policy exists in Azure for current service principal

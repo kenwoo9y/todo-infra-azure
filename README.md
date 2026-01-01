@@ -253,12 +253,107 @@ How to deploy from GitHub Actions:
     ```
     Edit `environments/dev/terraform.tfvars` to match your requirements.
 
-4. Deploy the infrastructure:
+4. **Set Terraform Service Principal Object ID** (Required for Key Vault access):
+   
+   To ensure consistent Key Vault access policy across local and CI/CD environments, you need to set the `terraform_service_principal_object_id` variable. This should be the same service principal used in GitHub Actions.
+   
+   **Get the service principal object ID:**
+   ```bash
+   # If you know the Azure Client ID used in GitHub Actions
+   az ad sp show --id <AZURE_CLIENT_ID> --query id -o tsv
+   
+   # Or list all service principals and find the one used for GitHub Actions
+   az ad sp list --display-name "github-actions-oidc" --query "[0].id" -o tsv
+   ```
+   
+   **Add to terraform.tfvars:**
+   ```hcl
+   terraform_service_principal_object_id = "your-service-principal-object-id"
+   ```
+   
+   **Note:** If this variable is not set, Terraform will use the current authenticated user's object_id, which may cause inconsistencies between local and CI/CD environments.
+
+5. Deploy the infrastructure:
     ```
     $ ./scripts/deploy.sh dev
     ```
 
 ## Usage
+### Local Development
+
+#### Prerequisites for Local Execution
+1. **Azure Authentication:**
+   ```bash
+   az login
+   ```
+
+2. **Set Terraform Service Principal Object ID:**
+   
+   To avoid `object_id` mismatches between local and CI/CD environments, set the `terraform_service_principal_object_id` in your `terraform.tfvars` file. This ensures that the same service principal is used for Key Vault access policies.
+   
+   ```bash
+   # Get the object ID of the service principal used in GitHub Actions
+   # Replace <AZURE_CLIENT_ID> with the Client ID from GitHub Secrets
+   OBJECT_ID=$(az ad sp show --id <AZURE_CLIENT_ID> --query id -o tsv)
+   echo "Object ID: $OBJECT_ID"
+   
+   # Add to environments/dev/terraform.tfvars
+   echo "terraform_service_principal_object_id = \"$OBJECT_ID\"" >> environments/dev/terraform.tfvars
+   ```
+   
+   **Why is this needed?**
+   - Local execution uses your personal Azure account's `object_id`
+   - GitHub Actions uses a service principal's `object_id`
+   - Setting this variable ensures both environments use the same `object_id` for Key Vault access policies
+   - This prevents "resource already exists" errors when switching between local and CI/CD
+
+3. **Import Existing Key Vault Access Policy (if needed):**
+   
+   If you've already deployed infrastructure via GitHub Actions and want to manage it locally, you may need to import the existing Key Vault access policy:
+   
+   ```bash
+   cd environments/dev
+   
+   # Get the service principal object ID
+   OBJECT_ID=$(az ad sp show --id <AZURE_CLIENT_ID> --query id -o tsv)
+   
+   # Get your subscription ID and resource group name
+   SUBSCRIPTION_ID="your-subscription-id"
+   RESOURCE_GROUP="todo-dev-rg"
+   KEY_VAULT_NAME="todo-dev-kv"
+   
+   # Import the access policy
+   terraform import \
+     module.database.azurerm_key_vault_access_policy.terraform \
+     "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers/Microsoft.KeyVault/vaults/${KEY_VAULT_NAME}/objectId/${OBJECT_ID}"
+   ```
+
+#### Local Execution Steps
+1. **Navigate to environment directory:**
+   ```bash
+   cd environments/dev
+   ```
+
+2. **Initialize Terraform:**
+   ```bash
+   terraform init
+   ```
+
+3. **Plan changes:**
+   ```bash
+   terraform plan
+   ```
+
+4. **Apply changes:**
+   ```bash
+   terraform apply
+   ```
+
+5. **Destroy infrastructure (if needed):**
+   ```bash
+   terraform destroy
+   ```
+
 ### Infrastructure Management
 - Deploy infrastructure:
     ```

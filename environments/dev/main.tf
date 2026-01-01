@@ -6,8 +6,15 @@ provider "azurerm" {
   # If providers are already registered, Terraform will use them automatically
 }
 
+# Data source for current client config
+# Note: This is used as a fallback, but terraform_service_principal_object_id variable should be set explicitly
+data "azurerm_client_config" "current" {}
+
 locals {
   resource_group_name = "${var.name_prefix}-${var.environment}-rg"
+  # Use explicit variable if provided, otherwise fall back to current client config
+  # This allows consistent object_id across environments
+  terraform_object_id = var.terraform_service_principal_object_id != "" ? var.terraform_service_principal_object_id : data.azurerm_client_config.current.object_id
 }
 
 # Resource Group
@@ -40,6 +47,7 @@ module "database" {
   mysql_password                              = var.mysql_password
   postgresql_password                         = var.postgresql_password
   container_app_managed_identity_principal_id = azurerm_user_assigned_identity.container_app.principal_id
+  terraform_service_principal_object_id       = local.terraform_object_id
 }
 
 # Backend Module

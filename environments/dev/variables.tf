@@ -102,3 +102,9 @@ variable "container_app_target_port" {
   type        = number
   default     = 8000
 }
+
+variable "terraform_service_principal_object_id" {
+  description = "Object ID of the service principal/user used by Terraform to manage Key Vault secrets. This should be the same across all execution environments (local, CI/CD). Get this value using: az ad sp show --id <CLIENT_ID> --query id -o tsv. If not set, will use the current authenticated user/service principal's object_id."
+  type        = string
+  default     = ""
+}

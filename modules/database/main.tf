@@ -31,6 +31,16 @@ resource "azurerm_mysql_flexible_database" "main" {
   collation           = "utf8mb4_unicode_ci"
 }
 
+# MySQL Firewall Rule - Allow Azure Services
+# This allows Container Apps and other Azure services to connect to MySQL
+resource "azurerm_mysql_flexible_server_firewall_rule" "allow_azure_services" {
+  name                = "AllowAzureServices"
+  resource_group_name = var.resource_group_name
+  server_name         = azurerm_mysql_flexible_server.main.name
+  start_ip_address    = "0.0.0.0"
+  end_ip_address      = "0.0.0.0"
+}
+
 # PostgreSQL Flexible Server
 resource "azurerm_postgresql_flexible_server" "main" {
   name                   = "${local.project_name}-postgresql-server"
@@ -61,6 +71,15 @@ resource "azurerm_postgresql_flexible_server_database" "main" {
   server_id = azurerm_postgresql_flexible_server.main.id
   charset   = "UTF8"
   collation = "en_US.utf8"
+}
+
+# PostgreSQL Firewall Rule - Allow Azure Services
+# This allows Container Apps and other Azure services to connect to PostgreSQL
+resource "azurerm_postgresql_flexible_server_firewall_rule" "allow_azure_services" {
+  name             = "AllowAzureServices"
+  server_id        = azurerm_postgresql_flexible_server.main.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
 }
 
 # Data source for current client config

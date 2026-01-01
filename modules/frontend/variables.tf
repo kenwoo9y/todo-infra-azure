@@ -44,3 +44,8 @@ variable "static_website_error_document" {
   default     = "index.html"
 }
 
+variable "terraform_service_principal_object_id" {
+  description = "Object ID of the service principal/user used by Terraform (e.g., GitHub Actions) to manage resources. This is used to grant Storage Blob Data Contributor role for uploading build artifacts."
+  type        = string
+}
+

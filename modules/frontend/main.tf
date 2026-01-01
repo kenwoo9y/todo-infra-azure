@@ -40,7 +40,10 @@ resource "azurerm_storage_account_static_website" "frontend" {
   error_404_document = var.static_website_error_document
 }
 
-# Note: Azure Front Door (Classic) is deprecated as of April 1, 2025
-# Front Door functionality is disabled by default
-# Use Storage Account static website endpoint directly for development environments
-# For production, consider migrating to Azure Front Door Standard/Premium 
+# Role assignment for GitHub Actions / Terraform service principal
+# This allows GitHub Actions to upload build artifacts to Blob Storage
+resource "azurerm_role_assignment" "storage_blob_data_contributor" {
+  scope                = azurerm_storage_account.frontend.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = var.terraform_service_principal_object_id
+}

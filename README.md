@@ -204,6 +204,61 @@ Setup instructions for using OIDC authentication to deploy to Azure from GitHub 
    
    **Note:** If Key Vault doesn't exist yet, you can skip this step for the initial deployment. However, you'll need to grant permissions before subsequent deployments if Terraform needs to read existing secrets.
 
+3. **Grant Storage Blob Data Contributor Role** (Required for Frontend Deployment):
+   
+   GitHub Actions needs permission to upload build artifacts to Blob Storage. This requires the "Storage Blob Data Contributor" role.
+   
+   **Option A: Grant User Access Administrator Role to Service Principal** (Recommended):
+   
+   To allow Terraform to automatically create role assignments, grant the service principal the "User Access Administrator" role at the resource group level:
+   
+   ```bash
+   # Get the service principal Object ID
+   SP_OBJECT_ID=$(az ad sp show --id $APP_ID --query id -o tsv)
+   
+   # Get your subscription ID and resource group name
+   SUBSCRIPTION_ID="your-subscription-id"
+   RESOURCE_GROUP="todo-dev-rg"
+   
+   # Assign User Access Administrator role at resource group level
+   az role assignment create \
+     --assignee $SP_OBJECT_ID \
+     --role "User Access Administrator" \
+     --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}
+   ```
+   
+   **Option B: Manually Create Role Assignment** (If Option A is not possible):
+   
+   If you cannot grant "User Access Administrator" role, you can manually create the role assignment after the storage account is created:
+   
+   ```bash
+   # Get the service principal Object ID
+   SP_OBJECT_ID=$(az ad sp show --id $APP_ID --query id -o tsv)
+   
+   # Get storage account ID (after Terraform creates it)
+   STORAGE_ACCOUNT_ID="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers/Microsoft.Storage/storageAccounts/<STORAGE_ACCOUNT_NAME>"
+   
+   # Manually create the role assignment
+   az role assignment create \
+     --assignee $SP_OBJECT_ID \
+     --role "Storage Blob Data Contributor" \
+     --scope $STORAGE_ACCOUNT_ID
+   
+   # Then import it into Terraform state
+   cd environments/dev
+   terraform import \
+     module.frontend.azurerm_role_assignment.storage_blob_data_contributor \
+     "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers/Microsoft.Storage/storageAccounts/<STORAGE_ACCOUNT_NAME>/providers/Microsoft.Authorization/roleAssignments/<ROLE_ASSIGNMENT_ID>"
+   ```
+   
+   To get the role assignment ID:
+   ```bash
+   az role assignment list \
+     --assignee $SP_OBJECT_ID \
+     --scope $STORAGE_ACCOUNT_ID \
+     --query "[?roleDefinitionName=='Storage Blob Data Contributor'].id" -o tsv
+   ```
+
 **GitHub-side Configuration:**
 1. Navigate to GitHub repository Settings → Secrets and variables → Actions
 2. Add the following Secrets:

@@ -42,8 +42,16 @@ resource "azurerm_storage_account_static_website" "frontend" {
 
 # Role assignment for GitHub Actions / Terraform service principal
 # This allows GitHub Actions to upload build artifacts to Blob Storage
+# Note: Creating role assignments requires "User Access Administrator" role.
+# If Terraform doesn't have this permission, create the role assignment manually:
+# az role assignment create \
+#   --assignee <SERVICE_PRINCIPAL_OBJECT_ID> \
+#   --role "Storage Blob Data Contributor" \
+#   --scope <STORAGE_ACCOUNT_ID>
+# Then import it: terraform import module.frontend.azurerm_role_assignment.storage_blob_data_contributor <ROLE_ASSIGNMENT_ID>
 resource "azurerm_role_assignment" "storage_blob_data_contributor" {
-  scope                = azurerm_storage_account.frontend.id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = var.terraform_service_principal_object_id
+  scope                            = azurerm_storage_account.frontend.id
+  role_definition_name             = "Storage Blob Data Contributor"
+  principal_id                     = var.terraform_service_principal_object_id
+  skip_service_principal_aad_check = true
 }

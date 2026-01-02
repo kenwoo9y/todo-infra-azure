@@ -10,7 +10,7 @@ output "storage_account_primary_web_endpoint" {
 
 output "frontend_url" {
   description = "Frontend URL (Storage Account Static Website URL)"
-  value       = replace(azurerm_storage_account.frontend.primary_web_endpoint, ".blob.core.windows.net", ".web.core.windows.net")
+  value       = trim(replace(azurerm_storage_account.frontend.primary_web_endpoint, ".blob.core.windows.net", ".web.core.windows.net"), "/")
 }
 
 output "front_door_url" {

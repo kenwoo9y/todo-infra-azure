@@ -10,7 +10,7 @@ output "storage_account_primary_web_endpoint" {
 
 output "frontend_url" {
   description = "Frontend URL (Storage Account Static Website URL)"
-  value       = azurerm_storage_account.frontend.primary_web_endpoint
+  value       = azurerm_storage_account_static_website.frontend.primary_web_endpoint
 }
 
 output "front_door_url" {

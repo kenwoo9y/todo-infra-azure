@@ -23,11 +23,6 @@ output "container_app_url" {
   value       = var.container_image != "" ? module.backend.container_app_url : null
 }
 
-output "front_door_url" {
-  description = "Azure Front Door URL"
-  value       = module.frontend.front_door_url
-}
-
 output "mysql_server_fqdn" {
   description = "MySQL server FQDN"
   value       = module.database.mysql_server_fqdn

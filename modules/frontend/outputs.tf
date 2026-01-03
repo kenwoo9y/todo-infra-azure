@@ -12,13 +12,3 @@ output "frontend_url" {
   description = "Frontend URL (Storage Account Static Website URL)"
   value       = trim(replace(azurerm_storage_account.frontend.primary_web_endpoint, ".blob.core.windows.net", ".web.core.windows.net"), "/")
 }
-
-output "front_door_url" {
-  description = "Azure Front Door URL (deprecated - using Storage Account endpoint directly)"
-  value       = null
-}
-
-output "front_door_id" {
-  description = "Azure Front Door ID (deprecated)"
-  value       = null
-} 

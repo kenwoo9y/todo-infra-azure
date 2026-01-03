@@ -169,9 +169,6 @@ terraform output
 
 echo ""
 echo -e "${GREEN}Created resources:${NC}"
-if terraform output -raw front_door_url >/dev/null 2>&1; then
-  echo -e "  Front Door URL: https://$(terraform output -raw front_door_url)"
-fi
 if terraform output -raw container_app_url >/dev/null 2>&1; then
   echo -e "  Container App URL: https://$(terraform output -raw container_app_url)"
 fi

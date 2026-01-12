@@ -46,9 +46,8 @@ This is a Terraform infrastructure project for deploying ToDo applications on Mi
 2. Install [TFLint](https://github.com/terraform-linters/tflint#installation)
 3. Install [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli)
 4. Create an [Azure Subscription](https://portal.azure.com/) and get your subscription ID
-5. Enable required resource providers in your Azure subscription
-6. Create a [Terraform Cloud account](https://app.terraform.io/session) and organization
-7. Authenticate with Terraform Cloud:
+5. Create a [Terraform Cloud account](https://app.terraform.io/session) and organization
+6. Authenticate with Terraform Cloud:
    ```bash
    terraform login
    ```
@@ -110,8 +109,6 @@ Setup instructions for using OIDC authentication to deploy to Azure from Terrafo
    - `ARM_SUBSCRIPTION_ID`: Azure Subscription ID - **Mark as Sensitive**
    - `ARM_TENANT_ID`: Azure Tenant ID - **Mark as Sensitive**
 
-**Note:** When using OIDC authentication, `ARM_CLIENT_SECRET` is not required.
-
 ### Initial Setup
 1. Clone this repository:
     ```
@@ -150,7 +147,7 @@ Setup instructions for using OIDC authentication to deploy to Azure from Terrafo
     ```
     Edit `.env` file and set the following (required for Terraform Cloud backend):
     - `TF_ORG_NAME`: Terraform Cloud organization name (required)
-    - `TF_WORKSPACE_NAME_PREFIX`: Workspace name prefix (e.g., `todo-infra`)
+    - `TF_WORKSPACE_NAME_PREFIX`: Workspace name prefix (e.g., `todo-infra-azure`)
       - Workspace names will be: `{prefix}-dev`, `{prefix}-staging`, `{prefix}-production`
     - `TF_TOKEN_app_terraform_io`: Terraform Cloud token (optional if using `terraform login`)
 
@@ -254,9 +251,6 @@ The infrastructure consists of the following components:
 
 For detailed architecture diagrams, see [Architecture Diagram](./docs/architecture-diagram.md).
 
-### Environment Configuration
-The project supports multiple environments (dev, staging, production) with separate configurations:
-
 #### Development Environment
 - **Location**: `environments/dev/`
 - **Default Database**: MySQL
@@ -286,16 +280,11 @@ Terraform variables are managed in two places:
    - `container_app_memory`: Memory limit for Container App container (optional, default: "0.5Gi")
    - `container_app_target_port`: Target port for Container App container (optional, default: 8000)
    - `terraform_service_principal_object_id`: Service principal Object ID for Key Vault access (optional, recommended for consistency between local and CI/CD)
-   - **Why**: Terraform's native format, supports complex types, better IDE support
 
 2. **`.env`** (Tool-specific environment variables):
    - `TF_TOKEN_app_terraform_io`: Terraform Cloud authentication token
-     - **Note**: Automatically used by Terraform Cloud, no `.tf` file configuration needed
    - `TF_ORG_NAME`: Terraform Cloud organization name
-     - **Note**: Automatically used by `deploy.sh` to configure backend (no manual `-backend-config` needed)
    - `TF_WORKSPACE_NAME_PREFIX`: Workspace name prefix
-     - **Note**: Automatically used by `deploy.sh` to configure backend (no manual `-backend-config` needed)
-   - **Why**: Shared across multiple tools, not Terraform-specific. All values are automatically used without `.tf` file configuration.
 
 ### Database Switching
 The infrastructure supports both PostgreSQL and MySQL databases. You can switch between them using the Container Apps Console or Azure CLI:
@@ -321,15 +310,6 @@ az containerapp update \
   --resource-group todo-app-dev-rg \
   --set-env-vars DB_TYPE=postgresql
 ```
-
-### Output Information
-After deployment, the following information is available:
-- **Container App URL**: URL where the backend application is accessible
-- **Storage Account Web Endpoint**: Static website endpoint for frontend application
-- **Container Registry Login Server**: Container image registry information
-- **MySQL Server FQDN**: MySQL database connection information
-- **PostgreSQL Server FQDN**: PostgreSQL database connection information
-- **Key Vault Name**: Key Vault name for database connection strings
 
 ## Deployment Workflow
 
@@ -373,7 +353,7 @@ To set up automated deployment with GitHub Actions, follow these steps:
    - Create a Terraform Cloud account at https://app.terraform.io/
    - Create an organization (note your organization name)
    - For each environment (dev, staging, production), create a workspace:
-     - Workspace name: `{TF_WORKSPACE_NAME_PREFIX}-{env}` (e.g., `todo-infra-dev`, `todo-infra-staging`, `todo-infra-production`)
+     - Workspace name: `{TF_WORKSPACE_NAME_PREFIX}-{env}` (e.g., `todo-infra-azure-dev`, `todo-infra-azure-staging`, `todo-infra-azure-production`)
      - **Execution mode: Local** (CRITICAL: Must be set to "Local" for local/CI execution)
        - Go to Workspace → Settings → General Settings
        - Set Execution Mode to **Local**
@@ -547,7 +527,7 @@ To set up automated deployment with GitHub Actions, follow these steps:
      - `AZURE_SUBSCRIPTION_ID`: Azure Subscription ID
      - `TF_API_TOKEN`: Your Terraform Cloud User API Token
      - `TF_ORG_NAME`: Your Terraform Cloud organization name
-     - `TF_WORKSPACE_NAME_PREFIX`: Workspace name prefix (e.g., `todo-infra`). The full workspace name will be `{prefix}-{environment}` (e.g., `todo-infra-dev`)
+     - `TF_WORKSPACE_NAME_PREFIX`: Workspace name prefix (e.g., `todo-infra-azure`). The full workspace name will be `{prefix}-{environment}` (e.g., `todo-infra-azure-dev`)
      - **Terraform Variables** (optional, defaults from `variables.tf` will be used if not set):
        - `TF_VAR_SUBSCRIPTION_ID`: Azure Subscription ID
        - `TF_VAR_LOCATION`: Azure region (default: "japaneast")
@@ -569,31 +549,7 @@ To set up automated deployment with GitHub Actions, follow these steps:
          - If these secrets are not set, the default values defined in `variables.tf` will be used
          - `terraform_service_principal_object_id` is automatically set from the service principal used for authentication, so it does not need to be configured as a secret
 
-4. Create environments in GitHub repository Settings → Environments (dev, staging, production)
-
-5. **Migrate existing state** to Terraform Cloud (if migrating from local state):
-   - Ensure `.env` file is configured with Terraform Cloud settings (see Initial Setup step 4)
-   - The `deploy.sh` script will automatically use these settings
-   - For dev environment:
-     ```bash
-     ./scripts/deploy.sh dev
-     # The script will prompt to migrate state on first run if local state exists
-     ```
-   - Or manually migrate:
-     ```bash
-     # Load .env file (if not already loaded)
-     export $(cat .env | grep -v '^#' | xargs)
-     
-     cd environments/dev
-     terraform init \
-       -backend-config=organization="${TF_ORG_NAME}" \
-       -backend-config=workspaces.name="${TF_WORKSPACE_NAME_PREFIX}-dev" \
-       -migrate-state
-     # When prompted, type "yes" to migrate the state
-     ```
-   - **Note**: If starting fresh, Terraform Cloud will create a new state file automatically
-
-6. **Deployment Methods**:
+4. **Deployment Methods**:
    - **Automatic Deployment**: 
      - Pushing to `main` branch → runs plan automatically
      - For actual deployment, use workflow_dispatch manually
@@ -604,6 +560,528 @@ To set up automated deployment with GitHub Actions, follow these steps:
      - Choose the environment to deploy (dev/staging/production) and action (plan/apply/destroy)
      - Click "Run workflow"
 
-7. **Verify Deployment**:
+5. **Verify Deployment**:
    - After the GitHub Actions workflow execution, deployment information will be displayed
    - Alternatively, you can check resource information using the `terraform output` command
+
+---
+## セットアップ
+### 前提条件
+1. [Terraform](https://www.terraform.io/downloads.html) v1.0+をインストール
+2. [TFLint](https://github.com/terraform-linters/tflint#installation)をインストール
+3. [Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli)をインストール
+4. [Azure Subscription](https://portal.azure.com/)を作成し、サブスクリプションIDを取得
+5. [Terraform Cloudアカウント](https://app.terraform.io/session)と組織を作成
+6. Terraform Cloudで認証:
+   ```bash
+   terraform login
+   ```
+
+### Terraform Cloudセットアップ
+このプロジェクトはステート管理にTerraform Cloudを使用する。
+
+#### 1. Terraform Cloud組織とワークスペースの作成
+1. [Terraform Cloud](https://app.terraform.io/)にログイン
+2. 組織を作成（まだ持っていない場合）
+
+#### 2. OIDC認証セットアップ（推奨）
+Terraform CloudからAzureにデプロイするためのOIDC認証を使用するセットアップ手順:
+
+**Azure側の設定:**
+1. Microsoft Entra IDでフェデレーテッド資格情報を作成:
+   ```bash
+   # Terraform Cloud用のフェデレーテッド資格情報を作成
+   az ad app create --display-name "terraform-cloud-oidc"
+   
+   # アプリケーションIDを取得
+   APP_ID=$(az ad app list --display-name "terraform-cloud-oidc" --query "[0].appId" -o tsv)
+   
+   # サービスプリンシパルを作成
+   az ad sp create --id $APP_ID
+   
+   # サブスクリプションにContributorロールを割り当て
+   az role assignment create \
+     --assignee $APP_ID \
+     --role Contributor \
+     --scope /subscriptions/YOUR_SUBSCRIPTION_ID
+   
+   # フェデレーテッド資格情報を作成
+   # 注意: 各ワークスペースごとに別々のフェデレーテッド資格情報を作成する必要がある
+   # JSONファイルを作成
+   cat > /tmp/federated-credential.json <<EOF
+   {
+     "name": "terraform-cloud-oidc-workspace-dev",
+     "issuer": "https://app.terraform.io",
+     "subject": "organization:YOUR_ORG_NAME:workspace:YOUR_WORKSPACE_PREFIX-dev:run_phase:*",
+     "audiences": ["terraform.io"]
+   }
+   EOF
+   
+   az ad app federated-credential create \
+     --id $APP_ID \
+     --parameters /tmp/federated-credential.json
+   
+   # stagingとproduction環境用にも同様の資格情報を作成
+   ```
+
+**Terraform Cloud側の設定:**
+1. Terraform Cloud組織に移動
+2. Settings → Variable setsに移動
+3. 新しいVariable setを作成するか、既存のものを編集
+4. 以下の環境変数を追加:
+   - `ARM_USE_OIDC`: `true` (機密情報ではない)
+   - `ARM_CLIENT_ID`: Microsoft Entra IDアプリケーションのクライアントID（上記の`$APP_ID`）- **機密情報としてマーク**
+   - `ARM_SUBSCRIPTION_ID`: AzureサブスクリプションID - **機密情報としてマーク**
+   - `ARM_TENANT_ID`: AzureテナントID - **機密情報としてマーク**
+
+### 初期セットアップ
+1. リポジトリをクローン:
+    ```
+    $ git clone https://github.com/kenwoo9y/todo-infra-azure.git
+    $ cd todo-infra-azure
+    ```
+
+2. Terraform変数を設定:
+    ```
+    $ cp environments/dev/terraform.tfvars.example environments/dev/terraform.tfvars
+    ```
+    `environments/dev/terraform.tfvars`を編集し、Terraform固有の変数を設定:
+    - `subscription_id`: AzureサブスクリプションID（必須）
+    - `location`: Azureリージョン（オプション、デフォルト: "japaneast"）
+    - `environment`: 環境名（オプション、デフォルト: "dev"）
+    - `name_prefix`: リソースの名前プレフィックス（オプション、デフォルト: "todo"）
+    - `mysql_password`: MySQLデータベースパスワード（必須）
+    - `postgresql_password`: PostgreSQLデータベースパスワード（必須）
+    - `default_database_type`: データベースタイプ（オプション、"mysql"または"postgresql"、デフォルト: "mysql"）
+    - `mysql_database_name`: MySQLデータベース名（オプション）
+    - `postgresql_database_name`: PostgreSQLデータベース名（オプション）
+    - `mysql_user`: MySQLデータベースユーザー名（オプション）
+    - `postgresql_user`: PostgreSQLデータベースユーザー名（オプション）
+    - `terraform_service_principal_object_id`: Key Vaultアクセス用のサービスプリンシパルObject ID（オプション、ローカルとCI/CD間の一貫性のために推奨）
+    - その他のTerraform変数（必要に応じて）
+
+3. Azureで認証:
+    ```bash
+    az login
+    ```
+    **注意**: ローカル開発では`az login`による認証で十分。
+
+4. Terraform Cloud用の環境変数を設定:
+    ```
+    $ cp .env.example .env
+    ```
+    `.env`ファイルを編集し、以下を設定（Terraform Cloudバックエンドに必須）:
+    - `TF_ORG_NAME`: Terraform Cloud組織名（必須）
+    - `TF_WORKSPACE_NAME_PREFIX`: ワークスペース名プレフィックス（例: `todo-infra-azure`）
+      - ワークスペース名は次のようになる: `{prefix}-dev`, `{prefix}-staging`, `{prefix}-production`
+    - `TF_TOKEN_app_terraform_io`: Terraform Cloudトークン（`terraform login`を使用している場合はオプション）
+
+    **注意**: 
+    - `deploy.sh`スクリプトはこれらの環境変数を自動的に使用してTerraform Cloudバックエンドを設定する
+    - 既に`terraform login`を実行している場合、`TF_TOKEN_app_terraform_io`を設定する必要はない
+    - Terraform Cloudワークスペースは**Execution Mode: Local**（Remoteではない）で作成する必要がある
+
+5. **TerraformサービスプリンシパルObject IDを設定**（Key Vaultアクセスに必須）:
+   
+   ローカルとCI/CD環境間でKey Vaultアクセスポリシーを一貫させるために、`terraform_service_principal_object_id`変数を設定する必要がある。これはGitHub Actionsで使用されるのと同じサービスプリンシパルである必要がある。
+   
+   **サービスプリンシパルObject IDを取得:**
+   ```bash
+   # GitHub Actionsで使用されるAzureクライアントIDが分かっている場合
+   az ad sp show --id <AZURE_CLIENT_ID> --query id -o tsv
+   
+   # または、すべてのサービスプリンシパルをリストしてGitHub Actionsで使用されているものを探す
+   az ad sp list --display-name "github-actions-oidc" --query "[0].id" -o tsv
+   ```
+   
+   **terraform.tfvarsに追加:**
+   ```hcl
+   terraform_service_principal_object_id = "your-service-principal-object-id"
+   ```
+   
+   **注意:** この変数が設定されていない場合、Terraformは現在認証されているユーザーのobject_idを使用するが、ローカルとCI/CD環境間で不整合が発生する可能性がある。
+
+6. インフラストラクチャをデプロイ:
+    ```
+    $ ./scripts/deploy.sh dev
+    ```
+   
+   **注意**: `terraform.tfvars`の`container_image`変数はオプション。空のままにすると、インフラストラクチャ（Container Registry、データベースなど）は作成されますが、Container Appサービスはスキップされる。DockerイメージをContainer Registryにプッシュした後、`container_image`の値を設定し、デプロイスクリプトを再度実行してContainer Appサービスを作成すること。
+   
+   **2段階デプロイメントワークフロー**:
+   
+   1. **初回デプロイ**（インフラストラクチャのみ）:
+      - `terraform.tfvars`で`container_image`を空のままにする（または省略）
+      - `./scripts/deploy.sh dev`を実行
+      - これにより、Container Registry、データベース、その他のインフラストラクチャリソースが作成されます
+      - この段階ではContainer Appサービスは作成されない
+   
+   2. **Dockerイメージのビルドとプッシュ**:
+      - Dockerイメージをビルドし、ステップ1で作成されたContainer Registryにプッシュ
+      - Container Appサービスが作成されなかった場合、デプロイスクリプトが次のステップを表示します
+   
+   3. **2回目のデプロイ**（Container Appサービスを作成）:
+      - `container_image`のURLで`terraform.tfvars`を更新
+      - `./scripts/deploy.sh dev`を再度実行
+      - これにより、コンテナイメージを使用してContainer Appサービスが作成される
+
+## 使用方法
+### インフラ管理
+- デプロイ:
+    ```
+    $ ./scripts/deploy.sh [dev|staging|production]
+    ```
+    - ステートは自動的にTerraform Cloudに保存される（`.env`ファイルで設定）
+- 削除:
+    ```
+    $ ./scripts/destroy.sh [dev|staging|production]
+    ```
+    - ステート操作はTerraform Cloudを通じて調整され、競合を防ぐ
+
+### データベース管理
+- データベース情報と切り替え手順は、以下の「データベース切り替え」セクションに記載。
+
+## 開発
+### コード品質チェック
+- リントチェック:
+    ```
+    $ make lint-check
+    ```
+- リントの問題を修正:
+    ```
+    $ make lint-fix
+    ```
+- コードフォーマットをチェック:
+    ```
+    $ make format-check
+    ```
+- コードフォーマットを適用:
+    ```
+    $ make format-fix
+    ```
+
+## インフラストラクチャ
+
+### アーキテクチャ概要
+
+インフラストラクチャは以下のコンポーネントで構成されている:
+
+- **バックエンド**: コンテナ化されたアプリケーションを持つContainer Appsサービス
+- **フロントエンド**: Static Websiteホスティング機能付きStorage Accountバケット
+- **データベース**: Key Vaultに接続文字列が保存されたAzure Databaseインスタンス（MySQLとPostgreSQL）
+- **Container Registry**: Dockerイメージ用のAzure Container Registry
+- **セキュリティ**: GitHub Actions用のWorkload Identity Federation、Azure認証用のサービスプリンシパル
+- **ステート管理**: リモートステート保存と調整のためのTerraform Cloud
+
+詳細なアーキテクチャ図については、[アーキテクチャ図](./docs/architecture-diagram.md)を参照。
+
+#### 開発環境
+- **場所**: `environments/dev/`
+- **デフォルトデータベース**: MySQL
+- **データベースプラン**:
+  - MySQL: `B_Standard_B1ms`（最も安価なオプション）
+  - PostgreSQL: `B_Standard_B1ms`（最も安価なオプション）
+
+#### 設定変数
+
+Terraform変数は2つの場所で管理される:
+
+1. **`terraform.tfvars`**（Terraform固有の変数）:
+   - `subscription_id`: AzureサブスクリプションID（必須）
+   - `location`: Azureリージョン（オプション、デフォルト: "japaneast"）
+   - `environment`: 環境名（オプション、デフォルト: "dev"）
+   - `name_prefix`: リソースの名前プレフィックス（オプション、デフォルト: "todo"）
+   - `mysql_password`: MySQLデータベースパスワード（必須）
+   - `postgresql_password`: PostgreSQLデータベースパスワード（必須）
+   - `default_database_type`: デフォルトデータベースタイプ（オプション、"mysql"または"postgresql"、デフォルト: "mysql"）
+   - `mysql_database_name`: MySQLデータベース名（オプション、デフォルト: "todo_mysql_db"）
+   - `postgresql_database_name`: PostgreSQLデータベース名（オプション、デフォルト: "todo_postgresql_db"）
+   - `mysql_user`: MySQLデータベースユーザー名（オプション、デフォルト: "todo_mysql_user"）
+   - `postgresql_user`: PostgreSQLデータベースユーザー名（オプション、デフォルト: "todo_postgresql_user"）
+   - `container_image`: Container Apps用のコンテナイメージURL（オプション、最初のデプロイメントでContainer Appサービス作成をスキップする場合は空のまま）
+   - `log_analytics_workspace_sku`: Log Analytics Workspace SKU（オプション、デフォルト: "PerGB2018"）
+   - `container_app_cpu`: Container AppコンテナのCPU制限（オプション、デフォルト: 0.25）
+   - `container_app_memory`: Container Appコンテナのメモリ制限（オプション、デフォルト: "0.5Gi"）
+   - `container_app_target_port`: Container Appコンテナのターゲットポート（オプション、デフォルト: 8000）
+   - `terraform_service_principal_object_id`: Key Vaultアクセス用のサービスプリンシパルObject ID（オプション、ローカルとCI/CD間の一貫性のために推奨）
+
+2. **`.env`**（ツール固有の環境変数）:
+   - `TF_TOKEN_app_terraform_io`: Terraform Cloud認証トークン
+   - `TF_ORG_NAME`: Terraform Cloud組織名
+   - `TF_WORKSPACE_NAME_PREFIX`: ワークスペース名プレフィックス
+
+### データベース切り替え
+PostgreSQLとMySQLの両方のデータベースをサポートしており、Container AppsコンソールまたはAzure CLIを使用して切り替えることができる:
+
+**Azure Portal経由の手動切り替え**:
+- Azure Portal → Container Apps → アプリ → Revision Managementに移動
+- 最新のリビジョンを編集
+- `DB_TYPE`を"mysql"または"postgresql"に変更
+- 必要に応じて`MYSQL_DATABASE_URL`または`POSTGRESQL_DATABASE_URL`を変更
+- 新しいリビジョンをデプロイ
+
+**Azure CLI経由の手動切り替え**:
+```bash
+# MySQLに切り替え
+az containerapp update \
+  --name dev-todoapp-dev-backend \
+  --resource-group todo-app-dev-rg \
+  --set-env-vars DB_TYPE=mysql
+
+# PostgreSQLに切り替え
+az containerapp update \
+  --name dev-todoapp-dev-backend \
+  --resource-group todo-app-dev-rg \
+  --set-env-vars DB_TYPE=postgresql
+```
+
+## デプロイメントワークフロー
+
+### 手動デプロイメント
+
+デプロイメントは、Dockerイメージをプッシュする前にインフラストラクチャをセットアップできるように、2段階のプロセスで行う:
+
+1. **インフラストラクチャセットアップ**（初回デプロイ）:
+    ```
+    $ ./scripts/deploy.sh dev
+    ```
+    - Container Registry、データベース、その他のインフラストラクチャリソースを作成
+    - `container_image`が空の場合、Container Appサービスは作成されない
+    - Container Appサービスがスキップされた場合、デプロイスクリプトが次のステップを表示する
+
+2. **アプリケーションイメージのデプロイ**:
+    - アプリケーションコンテナイメージをビルド
+    - Azure Container Registry（ステップ1で作成）にプッシュ
+    - `terraform.tfvars`の`container_image`変数をイメージURLで更新
+
+3. **Container Appサービス作成**（2回目のデプロイ）:
+    ```
+    $ ./scripts/deploy.sh dev
+    ```
+    - コンテナイメージを使用してContainer Appサービスを作成
+    - サービスはKey Vaultからのデータベース接続文字列で自動的に設定される
+
+4. **デプロイ後**:
+    - Azure Portalでデプロイされたリソースを確認
+    - 必要に応じてアプリケーション環境変数を設定
+    - データベースマイグレーションを実行
+
+5. **データベース設定**:
+    - 以下の「データベース切り替え」セクションの手動切り替え手順を参照
+
+### GitHub Actionsによる自動デプロイメント
+
+1. **Terraform Cloudバックエンドをセットアップ**（ステート管理に必須）:
+   - https://app.terraform.io/ でTerraform Cloudアカウントを作成
+   - 組織を作成（組織名をメモ）
+   - 各環境（dev、staging、production）ごとにワークスペースを作成:
+     - ワークスペース名: `{TF_WORKSPACE_NAME_PREFIX}-{env}`（例: `todo-infra-azure-dev`、`todo-infra-azure-staging`、`todo-infra-azure-production`）
+     - **実行モード: Local**（重要: ローカル/CI実行には"Local"に設定する必要がある）
+       - Workspace → Settings → General Settingsに移動
+       - Execution Modeを**Local**に設定
+       - "Remote"に設定すると、"Insufficient rights to generate a plan"エラーが発生する
+       - Localモードでは、ステートをリモートに保存しながら、マシン上またはCI/CDでTerraformを実行できる
+   - **Terraform Cloudで認証**（ローカルデプロイメントに必須）:
+     ```bash
+     terraform login
+     ```
+     これにより、認証用の`~/.terraform.d/credentials.tfrc.json`が作成される。
+     または、`TF_TOKEN_app_terraform_io`環境変数を設定することもできる。
+   - User API Tokenを生成（GitHub Actions用）:
+     - User Settings → Tokensに移動
+     - 新しいトークンを作成してコピー
+     - このトークンはGitHub ActionsがTerraform Cloudで認証するために使用される
+
+2. **Azure OIDC認証セットアップ**:
+   
+   GitHub ActionsからAzureにデプロイするためのOIDC認証を使用するセットアップ手順:
+   
+   **Azure側の設定:**
+   
+   a. Microsoft Entra IDでフェデレーテッド資格情報を作成:
+      ```bash
+      # GitHub Actions用のフェデレーテッド資格情報を作成
+      az ad app create --display-name "github-actions-oidc"
+      
+      # アプリケーションIDを取得
+      APP_ID=$(az ad app list --display-name "github-actions-oidc" --query "[0].appId" -o tsv)
+      
+      # サービスプリンシパルを作成
+      az ad sp create --id $APP_ID
+      
+      # サブスクリプションにContributorロールを割り当て
+      az role assignment create \
+        --assignee $APP_ID \
+        --role Contributor \
+        --scope /subscriptions/YOUR_SUBSCRIPTION_ID
+      
+      # フェデレーテッド資格情報を作成（GitHubリポジトリ用）
+      # ブランチベースの認証
+      cat > /tmp/github-oidc-branch.json <<EOF
+      {
+        "name": "github-actions-oidc-main",
+        "issuer": "https://token.actions.githubusercontent.com",
+        "subject": "repo:YOUR_GITHUB_ORG/YOUR_REPO_NAME:ref:refs/heads/main",
+        "audiences": ["api://AzureADTokenExchange"]
+      }
+      EOF
+      
+      az ad app federated-credential create \
+        --id $APP_ID \
+        --parameters /tmp/github-oidc-branch.json
+      
+      # 環境固有のフェデレーテッド資格情報も作成（推奨）
+      # dev環境用
+      cat > /tmp/github-oidc-dev.json <<EOF
+      {
+        "name": "github-actions-oidc-dev",
+        "issuer": "https://token.actions.githubusercontent.com",
+        "subject": "repo:YOUR_GITHUB_ORG/YOUR_REPO_NAME:environment:dev",
+        "audiences": ["api://AzureADTokenExchange"]
+      }
+      EOF
+      
+      az ad app federated-credential create \
+        --id $APP_ID \
+        --parameters /tmp/github-oidc-dev.json
+      
+      # stagingとproduction環境用にも同様の資格情報を作成
+      ```
+   
+   b. **Key Vaultアクセス権限を付与**（必須）:
+      
+      サービスプリンシパルは、Key Vaultにアクセスしてシークレットを読み取り、管理する必要がある。これは、Key Vaultが既に存在する場合や、Terraformが`terraform plan`または`terraform apply`中に既存のシークレットを読み取る必要がある場合に特に重要。
+      
+      **オプションA: Azure Portalを使用:**
+      1. Azure Portal → Key Vaults → Key Vaultに移動
+      2. "Access policies" → "Add Access Policy"に移動
+      3. サービスプリンシパルを検索（ステップaのクライアントIDを使用）
+      4. 以下のSecret権限を付与:
+         - `Get`、`List`、`Set`、`Delete`、`Recover`、`Backup`、`Restore`
+      5. "Add"と"Save"をクリック
+      
+      **オプションB: Azure CLIを使用:**
+      ```bash
+      # サービスプリンシパルObject IDを取得
+      SP_OBJECT_ID=$(az ad sp show --id $APP_ID --query id -o tsv)
+      
+      # Key Vaultアクセス権限を付与
+      az keyvault set-policy \
+        --name <YOUR_KEY_VAULT_NAME> \
+        --object-id $SP_OBJECT_ID \
+        --secret-permissions get list set delete recover backup restore
+      ```
+      
+      **オプションC: RBAC（ロールベースアクセス制御）を使用:**
+      ```bash
+      # サービスプリンシパルObject IDを取得
+      SP_OBJECT_ID=$(az ad sp show --id $APP_ID --query id -o tsv)
+      
+      # Key Vault Secrets Officerロールを割り当て
+      az role assignment create \
+        --role "Key Vault Secrets Officer" \
+        --assignee $SP_OBJECT_ID \
+        --scope /subscriptions/<YOUR_SUBSCRIPTION_ID>/resourceGroups/<YOUR_RESOURCE_GROUP>/providers/Microsoft.KeyVault/vaults/<YOUR_KEY_VAULT_NAME>
+      ```
+      
+      **注意:** Key Vaultがまだ存在しない場合、初期デプロイメントではこのステップをスキップできる。ただし、Terraformが既存のシークレットを読み取る必要がある場合、後続のデプロイメントの前に権限を付与する必要がある。
+   
+   c. **Storage Blob Data Contributorロールを付与**（フロントエンドデプロイメントに必須）:
+      
+      GitHub Actionsは、Blob Storageにビルド成果物をアップロードする権限が必要。これには"Storage Blob Data Contributor"ロールが必要。
+      
+      **オプションA: サービスプリンシパルにUser Access Administratorロールを付与**（推奨）:
+      
+      Terraformが自動的にロール割り当てを作成できるようにするには、リソースグループレベルでサービスプリンシパルに"User Access Administrator"ロールを付与する:
+      
+      ```bash
+      # サービスプリンシパルObject IDを取得
+      SP_OBJECT_ID=$(az ad sp show --id $APP_ID --query id -o tsv)
+      
+      # サブスクリプションIDとリソースグループ名を取得
+      SUBSCRIPTION_ID="your-subscription-id"
+      RESOURCE_GROUP="todo-dev-rg"
+      
+      # リソースグループレベルでUser Access Administratorロールを割り当て
+      az role assignment create \
+        --assignee $SP_OBJECT_ID \
+        --role "User Access Administrator" \
+        --scope /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}
+      ```
+      
+      **オプションB: 手動でロール割り当てを作成**（オプションAが不可能な場合）:
+      
+      "User Access Administrator"ロールを付与できない場合、ストレージアカウントが作成された後、手動でロール割り当てを作成できる:
+      
+      ```bash
+      # サービスプリンシパルObject IDを取得
+      SP_OBJECT_ID=$(az ad sp show --id $APP_ID --query id -o tsv)
+      
+      # ストレージアカウントIDを取得（Terraformが作成した後）
+      STORAGE_ACCOUNT_ID="/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers/Microsoft.Storage/storageAccounts/<STORAGE_ACCOUNT_NAME>"
+      
+      # 手動でロール割り当てを作成
+      az role assignment create \
+        --assignee $SP_OBJECT_ID \
+        --role "Storage Blob Data Contributor" \
+        --scope $STORAGE_ACCOUNT_ID
+      
+      # その後、Terraformステートにインポート
+      cd environments/dev
+      terraform import \
+        module.frontend.azurerm_role_assignment.storage_blob_data_contributor \
+        "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers/Microsoft.Storage/storageAccounts/<STORAGE_ACCOUNT_NAME>/providers/Microsoft.Authorization/roleAssignments/<ROLE_ASSIGNMENT_ID>"
+      ```
+      
+      ロール割り当てIDを取得するには:
+      ```bash
+      az role assignment list \
+        --assignee $SP_OBJECT_ID \
+        --scope $STORAGE_ACCOUNT_ID \
+        --query "[?roleDefinitionName=='Storage Blob Data Contributor'].id" -o tsv
+      ```
+
+3. **GitHub Secretsを設定**（各リポジトリについて）:
+   - GitHubリポジトリのSettings → Secrets and variables → Actionsに移動
+   - 以下のSecretsを追加:
+     - `AZURE_CLIENT_ID`: Microsoft Entra IDアプリケーションのクライアントID（ステップ2aの`$APP_ID`）
+     - `AZURE_TENANT_ID`: AzureテナントID
+     - `AZURE_SUBSCRIPTION_ID`: AzureサブスクリプションID
+     - `TF_API_TOKEN`: Terraform Cloud User API Token
+     - `TF_ORG_NAME`: Terraform Cloud組織名
+     - `TF_WORKSPACE_NAME_PREFIX`: ワークスペース名プレフィックス（例: `todo-infra-azure`）。完全なワークスペース名は`{prefix}-{environment}`（例: `todo-infra-azure-dev`）になります
+     - **Terraform変数**（オプション、設定されていない場合は`variables.tf`のデフォルト値が使用される）:
+       - `TF_VAR_SUBSCRIPTION_ID`: AzureサブスクリプションID
+       - `TF_VAR_LOCATION`: Azureリージョン（デフォルト: "japaneast"）
+       - `TF_VAR_MYSQL_PASSWORD`: MySQLデータベースパスワード
+       - `TF_VAR_POSTGRESQL_PASSWORD`: PostgreSQLデータベースパスワード
+       - `TF_VAR_ENVIRONMENT`: 環境名（デフォルト: "dev"）
+       - `TF_VAR_NAME_PREFIX`: リソースの名前プレフィックス（デフォルト: "todo"）
+       - `TF_VAR_CONTAINER_IMAGE`: Container Apps用のコンテナイメージURL
+       - `TF_VAR_DEFAULT_DATABASE_TYPE`: デフォルトデータベースタイプ（"mysql"または"postgresql"、デフォルト: "mysql"）
+       - `TF_VAR_MYSQL_DATABASE_NAME`: MySQLデータベース名
+       - `TF_VAR_POSTGRESQL_DATABASE_NAME`: PostgreSQLデータベース名
+       - `TF_VAR_MYSQL_USER`: MySQLデータベースユーザー名
+       - `TF_VAR_POSTGRESQL_USER`: PostgreSQLデータベースユーザー名
+       - `TF_VAR_LOG_ANALYTICS_WORKSPACE_SKU`: Log Analytics Workspace SKU（デフォルト: "PerGB2018"）
+       - `TF_VAR_CONTAINER_APP_CPU`: Container AppコンテナのCPU制限（デフォルト: 0.25）
+       - `TF_VAR_CONTAINER_APP_MEMORY`: Container Appコンテナのメモリ制限（デフォルト: "0.5Gi"）
+       - `TF_VAR_CONTAINER_APP_TARGET_PORT`: Container Appコンテナのターゲットポート（デフォルト: 8000）
+       - **注意**: 
+         - これらのシークレットが設定されていない場合、`variables.tf`で定義されたデフォルト値が使用される
+         - `terraform_service_principal_object_id`は認証に使用されるサービスプリンシパルから自動的に設定されるため、シークレットとして設定する必要はない
+
+4. **デプロイメント方法**:
+   - **自動デプロイメント**: 
+     - `main`ブランチにプッシュ → 自動的にplanを実行
+     - 実際のデプロイメントには、手動でworkflow_dispatchを使用
+   - **手動デプロイメント**: 
+     - GitHubリポジトリの"Actions"タブを開く
+     - "Terraform Deploy Workflow"を選択
+     - "Run workflow"をクリック
+     - デプロイする環境（dev/staging/production）とアクション（plan/apply/destroy）を選択
+     - "Run workflow"をクリック
+
+5. **デプロイメントを確認**:
+   - GitHub Actionsワークフロー実行後、デプロイメント情報が表示される
+   - または、`terraform output`コマンドを使用してリソース情報を確認できる

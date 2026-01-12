@@ -54,23 +54,23 @@ module "database" {
 module "backend" {
   source = "../../modules/backend"
 
-  location            = var.location
-  resource_group_name = azurerm_resource_group.main.name
-  name_prefix         = var.name_prefix
-  environment         = var.environment
-  container_image = var.container_image
-  container_app_cpu         = var.container_app_cpu
-  container_app_memory      = var.container_app_memory
-  container_app_target_port = var.container_app_target_port
-  log_analytics_workspace_name              = var.log_analytics_workspace_name
-  log_analytics_workspace_sku               = var.log_analytics_workspace_sku
-  log_analytics_workspace_retention_in_days = var.log_analytics_workspace_retention_in_days
-  default_database_type = var.default_database_type
+  location                                    = var.location
+  resource_group_name                         = azurerm_resource_group.main.name
+  name_prefix                                 = var.name_prefix
+  environment                                 = var.environment
+  container_image                             = var.container_image
+  container_app_cpu                           = var.container_app_cpu
+  container_app_memory                        = var.container_app_memory
+  container_app_target_port                   = var.container_app_target_port
+  log_analytics_workspace_name                = var.log_analytics_workspace_name
+  log_analytics_workspace_sku                 = var.log_analytics_workspace_sku
+  log_analytics_workspace_retention_in_days   = var.log_analytics_workspace_retention_in_days
+  default_database_type                       = var.default_database_type
   container_app_managed_identity_id           = azurerm_user_assigned_identity.container_app.id
   container_app_managed_identity_principal_id = azurerm_user_assigned_identity.container_app.principal_id
-  mysql_database_url_secret_id      = module.database.mysql_database_url_secret_id
-  postgresql_database_url_secret_id = module.database.postgresql_database_url_secret_id
-  frontend_url = module.frontend.frontend_url
+  mysql_database_url_secret_id                = module.database.mysql_database_url_secret_id
+  postgresql_database_url_secret_id           = module.database.postgresql_database_url_secret_id
+  frontend_url                                = module.frontend.frontend_url
 }
 
 # Frontend Module

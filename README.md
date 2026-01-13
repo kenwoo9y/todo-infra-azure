@@ -18,20 +18,23 @@ This is a Terraform infrastructure project for deploying ToDo applications on Mi
 - [Microsoft Azure](https://azure.microsoft.com/) - Cloud platform for hosting and database services
 
 ### Frontend Services
-- [Azure Storage Account](https://azure.microsoft.com/services/storage/) - Blob Storage with Static Website for frontend static files
+- [Azure Storage Account](https://azure.microsoft.com/products/storage/blobs/) - Blob Storage with Static Website for frontend static files
 
 ### Backend Services
-- [Azure Container Apps](https://azure.microsoft.com/services/container-apps/) - Serverless container platform for backend services
-- [Azure Container Registry](https://azure.microsoft.com/services/container-registry/) - Container image registry for backend
+- [Azure Container Apps](https://azure.microsoft.com/products/container-apps/) - Serverless container platform for backend services
+- [Azure Container Registry](https://azure.microsoft.com/products/container-registry/) - Container image registry for backend
 
 ### Database
-- [Azure Database for MySQL](https://azure.microsoft.com/services/mysql/) - Managed MySQL database
-- [Azure Database for PostgreSQL](https://azure.microsoft.com/services/postgresql/) - Managed PostgreSQL database
+- [Azure Database for MySQL](https://azure.microsoft.com/products/mysql/) - Managed MySQL database
+- [Azure Database for PostgreSQL](https://azure.microsoft.com/products/postgresql/) - Managed PostgreSQL database
 
 ### Security & Identity
-- [Azure Key Vault](https://azure.microsoft.com/services/key-vault/) - Secure storage and management of database connection strings and secrets
+- [Azure Key Vault](https://azure.microsoft.com/products/key-vault/) - Secure storage and management of database connection strings and secrets
 - [Microsoft Entra ID](https://www.microsoft.com/security/business/identity-access/microsoft-entra-id) - Identity and Access Management for service principals and permissions
-- [Workload Identity Federation](https://learn.microsoft.com/azure/active-directory/develop/workload-identity-federation) - OIDC-based authentication for GitHub Actions and Terraform Cloud
+- [Workload Identity Federation](https://learn.microsoft.com/entra/workload-id/workload-identity-federation) - OIDC-based authentication for GitHub Actions and Terraform Cloud
+
+### Logging
+- [Azure Monitor - Log Analytics](https://learn.microsoft.com/azure/azure-monitor/logs/log-analytics-overview?tabs=simple) - Log management and aggregation service
 
 ### Code Quality Assurance
 - [TFLint](https://github.com/terraform-linters/tflint) - Terraform linting and validation
